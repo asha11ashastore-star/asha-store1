@@ -65,11 +65,15 @@ CORS_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
+    # Production Vercel deployments
+    "https://react-dashboard-gwz6vra1a-ashastore.vercel.app",
+    "https://customer-website-16yp3wa3t-ashastore.vercel.app",
+    "https://*.vercel.app",  # Allow all Vercel deployments
 ]
 
 if settings.environment == "production":
     CORS_ORIGINS.extend([
-        "https://yourstore.com",
-        "https://www.yourstore.com",
-        # Add your production domains
+        "https://ashastore.com",
+        "https://www.ashastore.com",
+        # Add your custom domains when ready
     ])
