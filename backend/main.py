@@ -166,6 +166,23 @@ async def health_check(request: Request):
         "timestamp": time.time()
     }
 
+# Initialize database endpoint (for production setup)
+@app.post("/init-db")
+async def initialize_database():
+    """Initialize database tables - run once on first deployment"""
+    try:
+        from app.database import create_tables
+        logger.info("Manual database initialization requested")
+        create_tables()
+        return {
+            "status": "success",
+            "message": "Database tables created successfully!",
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Database initialization failed: {str(e)}")
+
 # Root endpoint
 @app.get("/")
 async def root():
