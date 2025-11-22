@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Authentication</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            padding: 50px;
+            background: linear-gradient(135deg, #8b6742 0%, #a67c52 100%);
+            color: white;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #8b6742;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover { background: #70553a; }
+        .success { color: #059669; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Clear Authentication Data</h1>
+        <p>This will clear the old fake token and allow you to log in with proper JWT authentication.</p>
+        
+        <button onclick="clearAuth()">Clear Authentication & Reload</button>
+        
+        <div id="status" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        function clearAuth() {
+            // Clear all authentication data
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            sessionStorage.clear();
+            
+            // Clear any cached API headers
+            delete window.localStorage['authToken'];
+            delete window.localStorage['currentUser'];
+            
+            document.getElementById('status').innerHTML = 
+                '<div class="success">✅ Authentication cleared successfully!</div><br>' +
+                'Redirecting to login page in 2 seconds...';
+            
+            // Redirect to dashboard (which will show login page)
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        }
+        
+        // Auto-clear on page load for convenience
+        window.onload = function() {
+            document.getElementById('status').innerHTML = 
+                '<p>Click the button below to clear old authentication data.</p>';
+        }
+    </script>
+</body>
+</html>

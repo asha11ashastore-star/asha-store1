@@ -1,0 +1,67 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#f8f6f4',
+          100: '#f0ece7',
+          200: '#e4ddd4',
+          300: '#d4c8b8',
+          400: '#c2ae96',
+          500: '#b5996f',
+          600: '#a98759',
+          700: '#8d6d4a',
+          800: '#725a40',
+          900: '#5c4937',
+        },
+        brown: {
+          50: '#faf8f5',
+          100: '#f5f0eb',
+          200: '#e8ddd2',
+          300: '#d9c7b3',
+          400: '#c7a885',
+          500: '#b8936b',
+          600: '#a67c52',
+          700: '#8b6742',
+          800: '#70553a',
+          900: '#5a4530',
+        },
+        accent: {
+          50: '#fef7ed',
+          100: '#feedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#f97316',
+          600: '#ea580c',
+          700: '#c2410c',
+          800: '#9a3412',
+          900: '#7c2d12',
+        },
+        beige: {
+          50: '#fefdf9',
+          100: '#fefbf3',
+          200: '#fdf4e1',
+          300: '#fbeac5',
+          400: '#f7d794',
+          500: '#f2c464',
+          600: '#edb147',
+          700: '#d89d2a',
+          800: '#b67d22',
+          900: '#946620',
+        },
+      },
+      fontFamily: {
+        elegant: ['Playfair Display', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [],
+}

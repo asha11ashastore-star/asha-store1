@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  clothing-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.clothing
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://clothing_user:clothing_password@db:5432/clothing_db
+      - SECRET_KEY=your-super-secret-key-change-in-production
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: clothing_db
+      POSTGRES_USER: clothing_user
+      POSTGRES_PASSWORD: clothing_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - clothing_db_data:/var/lib/postgresql/data
+
+volumes:
+  clothing_db_data:

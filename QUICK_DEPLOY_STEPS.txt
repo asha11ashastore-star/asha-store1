@@ -1,0 +1,232 @@
+🚀 DEPLOY AशĀ STORE - QUICK STEPS
+══════════════════════════════════════════════
+
+Your Accounts Ready:
+✅ Vercel: https://vercel.com/ashastore
+✅ Render: https://dashboard.render.com
+✅ GoDaddy: Your domain purchased
+
+══════════════════════════════════════════════
+
+STEP 1: PUSH TO GITHUB (5 min)
+───────────────────────────────
+
+Option A - GitHub Desktop (Easiest):
+1. Download: https://desktop.github.com
+2. Install and sign in
+3. Add repository: /Users/divyanshurathore/shopall
+4. Click "Publish Repository"
+5. Name: asha-store
+6. Done! ✅
+
+Option B - Command Line:
+1. Create repo on github.com
+2. Copy repo URL
+3. Run in terminal:
+   git remote remove origin
+   git remote add origin YOUR_GITHUB_URL
+   git push -u origin main
+
+══════════════════════════════════════════════
+
+STEP 2: DEPLOY BACKEND (Render) (30 min)
+────────────────────────────────────────
+
+A) Create Database:
+   1. Render Dashboard → New + → PostgreSQL
+   2. Name: asha-store-db
+   3. Region: Singapore
+   4. Create → Copy Internal Database URL
+   
+B) Create Web Service:
+   1. New + → Web Service
+   2. Connect GitHub → Select: asha-store
+   3. Configure:
+      - Name: asha-store-backend
+      - Root: backend
+      - Build: pip install -r requirements.txt
+      - Start: uvicorn main:app --host 0.0.0.0 --port $PORT
+   
+C) Add Environment Variables:
+   - DATABASE_URL = [database URL from step A]
+   - JWT_SECRET = asha_store_secret_2024
+   - JWT_ALGORITHM = HS256
+   - ACCESS_TOKEN_EXPIRE_MINUTES = 1440
+   - REFRESH_TOKEN_EXPIRE_DAYS = 7
+   - RAZORPAY_KEY_ID = rzp_test_FVZPTn18225397949705
+   - RAZORPAY_KEY_SECRET = [from Razorpay]
+   - ALLOWED_ORIGINS = https://ashastore.com,https://www.ashastore.com,https://admin.ashastore.com
+   
+D) Deploy → Wait 5-10 minutes
+E) Copy your backend URL: https://asha-store-backend-XXXXX.onrender.com
+
+══════════════════════════════════════════════
+
+STEP 3: DEPLOY CUSTOMER WEBSITE (Vercel) (20 min)
+──────────────────────────────────────────────
+
+1. Vercel Dashboard → Add New → Project
+2. Import repository: asha-store
+3. Configure:
+   - Name: asha-store-customer
+   - Framework: Next.js
+   - Root: frontend/customer-website
+   
+4. Environment Variables:
+   NEXT_PUBLIC_API_URL = [your backend URL]
+   NEXT_PUBLIC_RAZORPAY_KEY_ID = rzp_test_FVZPTn18225397949705
+   NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK = https://razorpay.me/@ashadhaundiyal
+   
+5. Deploy → Wait 2-3 minutes
+6. Copy URL: https://asha-store-customer-XXXXX.vercel.app
+
+══════════════════════════════════════════════
+
+STEP 4: DEPLOY SELLER DASHBOARD (Vercel) (15 min)
+──────────────────────────────────────────────
+
+1. Vercel → Add New → Project
+2. Import SAME repository: asha-store
+3. Configure:
+   - Name: asha-store-dashboard
+   - Framework: Create React App
+   - Root: frontend/react-dashboard
+   
+4. Environment Variable:
+   REACT_APP_API_URL = [your backend URL]
+   
+5. Deploy → Wait 2-3 minutes
+6. Copy URL: https://asha-store-dashboard-XXXXX.vercel.app
+
+══════════════════════════════════════════════
+
+STEP 5: CONNECT GODADDY DOMAIN (30 min)
+────────────────────────────────────────
+
+A) Customer Website:
+
+In Vercel (asha-store-customer project):
+   Settings → Domains
+   Add: ashastore.com
+   Add: www.ashastore.com
+   
+   Vercel shows DNS records:
+   A      @      76.76.21.21
+   CNAME  www    cname.vercel-dns.com
+
+In GoDaddy:
+   Login → My Products → Your Domain → Manage DNS
+   
+   Add Record 1:
+   Type: A
+   Name: @
+   Value: 76.76.21.21
+   TTL: 600
+   
+   Add Record 2:
+   Type: CNAME
+   Name: www
+   Value: cname.vercel-dns.com
+   TTL: 1 Hour
+   
+   Save!
+
+B) Seller Dashboard:
+
+In Vercel (asha-store-dashboard project):
+   Settings → Domains
+   Add: admin.ashastore.com
+   
+   Vercel shows:
+   CNAME  admin  cname.vercel-dns.com
+
+In GoDaddy DNS:
+   Add Record:
+   Type: CNAME
+   Name: admin
+   Value: cname.vercel-dns.com
+   TTL: 1 Hour
+   
+   Save!
+
+══════════════════════════════════════════════
+
+STEP 6: WAIT & VERIFY (1 hour)
+───────────────────────────────
+
+1. Wait 10-60 minutes for DNS propagation
+2. Check: https://dnschecker.org
+3. Test your websites:
+   ✅ https://ashastore.com
+   ✅ https://www.ashastore.com
+   ✅ https://admin.ashastore.com
+
+══════════════════════════════════════════════
+
+🎉 YOU'RE LIVE!
+═══════════════
+
+Customer Website:  https://ashastore.com
+Seller Dashboard:  https://admin.ashastore.com
+Backend API:       https://asha-store-backend-XXXXX.onrender.com
+
+══════════════════════════════════════════════
+
+QUICK TEST:
+───────────
+
+Customer Site:
+1. Visit https://ashastore.com
+2. Browse products
+3. Add to cart
+4. Test checkout
+
+Seller Dashboard:
+1. Visit https://admin.ashastore.com
+2. Login: asha@ashastore.com / AshaStore2024!
+3. View products
+4. Try adding a product
+
+══════════════════════════════════════════════
+
+📱 ANNOUNCE YOUR LAUNCH!
+════════════════════════
+
+WhatsApp Status:
+"🎉 NEW WEBSITE LAUNCH!
+Aशā - Beautiful Handwoven Sarees
+Visit: ashastore.com 🛍️"
+
+Instagram/Facebook:
+Share your website with beautiful product photos!
+
+══════════════════════════════════════════════
+
+💰 YOUR COSTS:
+═════════════
+
+Monthly:
+Domain:    ₹100
+Backend:   ₹0-580 (Free or Starter)
+Frontend:  ₹0 (FREE!)
+Dashboard: ₹0 (FREE!)
+───────────────
+Total:     ₹100-680/month
+
+══════════════════════════════════════════════
+
+🆘 NEED HELP?
+═════════════
+
+See: DEPLOY_INSTRUCTIONS.md
+(Complete detailed guide with screenshots)
+
+Support:
+- Vercel: vercel.com/docs
+- Render: docs.render.com
+- GoDaddy: godaddy.com/help
+
+══════════════════════════════════════════════
+
+START NOW! 🚀
+Open: DEPLOY_INSTRUCTIONS.md for detailed steps

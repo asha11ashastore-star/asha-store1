@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Remove default browser spacing */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --font-elegant: 'Playfair Display', serif;
+  --primary-brown: #8B4513;
+  --dark-brown: #654321;
+  --rich-brown: #5D4037;
+  --light-brown: #A0522D;
+  --cream: #FFF8DC;
+  --warm-white: #FAF7F0;
+  --maroon: #800000;
+  --dark-maroon: #660000;
+  --light-maroon: #A0001E;
+}
+
+.font-elegant {
+  font-family: var(--font-elegant);
+}
+
+/* Custom brown theme colors */
+.bg-primary-brown { background-color: var(--primary-brown); }
+.bg-dark-brown { background-color: var(--dark-brown); }
+.bg-rich-brown { background-color: var(--rich-brown); }
+.bg-light-brown { background-color: var(--light-brown); }
+.bg-cream { background-color: var(--cream); }
+.bg-warm-white { background-color: var(--warm-white); }
+
+/* Maroon theme colors */
+.bg-maroon { background-color: var(--maroon); }
+.bg-dark-maroon { background-color: var(--dark-maroon); }
+.bg-light-maroon { background-color: var(--light-maroon); }
+
+.text-primary-brown { color: var(--primary-brown); }
+.text-dark-brown { color: var(--dark-brown); }
+.text-rich-brown { color: var(--rich-brown); }
+.text-light-brown { color: var(--light-brown); }
+.text-maroon { color: var(--maroon); }
+.text-dark-maroon { color: var(--dark-maroon); }
+
+.border-primary-brown { border-color: var(--primary-brown); }
+.border-dark-brown { border-color: var(--dark-brown); }
+.border-maroon { border-color: var(--maroon); }
