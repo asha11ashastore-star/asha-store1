@@ -1,0 +1,127 @@
+═══════════════════════════════════════════════════════════
+🌍 GoDaddy DNS Setup - DO THIS AFTER DEPLOYING TO VERCEL
+═══════════════════════════════════════════════════════════
+
+⚠️  IMPORTANT: Do DNS setup ONLY AFTER deploying to Vercel!
+
+═══════════════════════════════════════════════════════════
+
+STEP 1: DEPLOY TO VERCEL FIRST
+─────────────────────────────────────────────────
+
+You MUST do this before DNS:
+
+1. Deploy customer website to Vercel
+2. Deploy seller dashboard to Vercel
+3. Get the URLs from Vercel
+
+═══════════════════════════════════════════════════════════
+
+STEP 2: GET DNS VALUES FROM VERCEL
+─────────────────────────────────────────────────
+
+In Vercel Dashboard:
+
+Customer Website Project:
+→ Settings → Domains
+→ Add: yourdomain.com
+→ Vercel shows DNS records
+→ COPY THESE!
+
+Dashboard Project:
+→ Settings → Domains  
+→ Add: admin.yourdomain.com
+→ Vercel shows DNS records
+→ COPY THESE!
+
+═══════════════════════════════════════════════════════════
+
+STEP 3: ADD DNS IN GODADDY
+─────────────────────────────────────────────────
+
+Your GoDaddy Dashboard:
+https://dashboard.godaddy.com/venture/website?ventureId=16233c42-60a4-487f-b30b-a9fb2657181e
+
+Click: Manage DNS (or DNS settings)
+
+Add 3 Records:
+
+Record 1 (Main Domain):
+Type: A
+Name: @
+Value: [from Vercel - usually 76.76.21.21]
+TTL: 1 Hour
+
+Record 2 (WWW):
+Type: CNAME
+Name: www
+Value: [from Vercel - usually cname.vercel-dns.com]
+TTL: 1 Hour
+
+Record 3 (Admin):
+Type: CNAME
+Name: admin
+Value: [from Vercel - usually cname.vercel-dns.com]
+TTL: 1 Hour
+
+═══════════════════════════════════════════════════════════
+
+STEP 4: WAIT
+─────────────────────────────────────────────────
+
+DNS takes time to propagate:
+- Minimum: 10 minutes
+- Average: 30-60 minutes
+- Maximum: 24 hours
+
+Check: https://dnschecker.org
+
+═══════════════════════════════════════════════════════════
+
+WHAT TO DO RIGHT NOW
+─────────────────────────────────────────────────
+
+Since you have GoDaddy ready:
+
+1. ✅ Keep GoDaddy tab open
+2. 🚀 Deploy to Vercel first (follow CLICK_BY_CLICK_DEPLOY.md)
+3. 📋 Get DNS values from Vercel
+4. 🌍 Come back to GoDaddy and add DNS
+5. ⏰ Wait for propagation
+6. 🎉 Your website is LIVE!
+
+═══════════════════════════════════════════════════════════
+
+CURRENT STATUS
+─────────────────────────────────────────────────
+
+✅ GoDaddy domain: Ready
+✅ Code: Committed and ready
+⏳ Need to do: Deploy to Render & Vercel
+⏳ Then: Setup DNS in GoDaddy
+
+═══════════════════════════════════════════════════════════
+
+DEPLOYMENT ORDER
+─────────────────────────────────────────────────
+
+1️⃣  GitHub    → Push code
+2️⃣  Render    → Deploy backend
+3️⃣  Vercel    → Deploy customer website
+4️⃣  Vercel    → Deploy seller dashboard
+5️⃣  GoDaddy   → Add DNS records ← YOU'RE HERE!
+6️⃣  Wait      → DNS propagation
+7️⃣  Test      → Everything works!
+8️⃣  Launch    → Go live! 🎉
+
+═══════════════════════════════════════════════════════════
+
+📖 FULL DNS GUIDE: GODADDY_DNS_SETUP.md
+🚀 DEPLOYMENT GUIDE: CLICK_BY_CLICK_DEPLOY.md
+
+═══════════════════════════════════════════════════════════
+
+DON'T ADD DNS YET! Deploy to Vercel first!
+Then Vercel will tell you exact values to use.
+
+═══════════════════════════════════════════════════════════

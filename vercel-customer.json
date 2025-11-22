@@ -1,0 +1,15 @@
+{
+  "name": "asha-store-customer",
+  "version": 2,
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "regions": ["sin1"],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "REPLACE_WITH_BACKEND_URL",
+    "NEXT_PUBLIC_RAZORPAY_KEY_ID": "rzp_test_FVZPTn18225397949705",
+    "NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK": "https://razorpay.me/@ashadhaundiyal"
+  }
+}

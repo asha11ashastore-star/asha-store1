@@ -1,0 +1,204 @@
+═══════════════════════════════════════════════════════════
+🚀 COPY-PASTE DEPLOYMENT COMMANDS - Aशā Store
+═══════════════════════════════════════════════════════════
+
+STEP 1: PUSH TO GITHUB
+─────────────────────────────────────────────────
+
+After creating repository on GitHub, copy YOUR repo URL and run:
+
+cd /Users/divyanshurathore/shopall
+git remote remove origin 2>/dev/null || true
+git remote add origin https://github.com/YOUR_USERNAME/asha-store.git
+git push -u origin main
+
+(Replace YOUR_USERNAME with your actual GitHub username)
+
+═══════════════════════════════════════════════════════════
+
+STEP 2: RENDER - BACKEND ENVIRONMENT VARIABLES
+─────────────────────────────────────────────────
+
+Copy these and add one-by-one in Render:
+
+DATABASE_URL
+[paste your database URL from Render]
+
+JWT_SECRET
+asha_store_secret_key_2024_secure_production
+
+JWT_ALGORITHM
+HS256
+
+ACCESS_TOKEN_EXPIRE_MINUTES
+1440
+
+REFRESH_TOKEN_EXPIRE_DAYS
+7
+
+RAZORPAY_KEY_ID
+rzp_test_FVZPTn18225397949705
+
+RAZORPAY_KEY_SECRET
+[get from Razorpay Dashboard → Settings → API Keys]
+
+ALLOWED_ORIGINS
+https://ashastore.com,https://www.ashastore.com,https://admin.ashastore.com
+
+═══════════════════════════════════════════════════════════
+
+RENDER - BUILD & START COMMANDS
+─────────────────────────────────────────────────
+
+Root Directory:
+backend
+
+Build Command:
+pip install -r requirements.txt
+
+Start Command:
+uvicorn main:app --host 0.0.0.0 --port $PORT
+
+═══════════════════════════════════════════════════════════
+
+STEP 3: VERCEL - CUSTOMER WEBSITE ENV VARS
+─────────────────────────────────────────────────
+
+Root Directory:
+frontend/customer-website
+
+Environment Variables:
+
+NEXT_PUBLIC_API_URL
+[paste your Render backend URL]
+
+NEXT_PUBLIC_RAZORPAY_KEY_ID
+rzp_test_FVZPTn18225397949705
+
+NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK
+https://razorpay.me/@ashadhaundiyal
+
+═══════════════════════════════════════════════════════════
+
+STEP 4: VERCEL - SELLER DASHBOARD ENV VAR
+─────────────────────────────────────────────────
+
+Root Directory:
+frontend/react-dashboard
+
+Environment Variable:
+
+REACT_APP_API_URL
+[paste your Render backend URL]
+
+═══════════════════════════════════════════════════════════
+
+STEP 5: GODADDY - DNS RECORDS
+─────────────────────────────────────────────────
+
+Add these 3 records in GoDaddy DNS:
+
+Record 1:
+Type: A
+Name: @
+Value: 76.76.21.21
+TTL: 1 Hour
+
+Record 2:
+Type: CNAME
+Name: www
+Value: cname.vercel-dns.com
+TTL: 1 Hour
+
+Record 3:
+Type: CNAME
+Name: admin
+Value: cname.vercel-dns.com
+TTL: 1 Hour
+
+═══════════════════════════════════════════════════════════
+
+QUICK CHECKS
+─────────────────────────────────────────────────
+
+Check Backend Health:
+https://[your-backend-url].onrender.com/health
+
+Check DNS Propagation:
+https://dnschecker.org
+
+Test Your Sites:
+https://ashastore.com
+https://www.ashastore.com
+https://admin.ashastore.com
+
+═══════════════════════════════════════════════════════════
+
+LOGIN CREDENTIALS
+─────────────────────────────────────────────────
+
+Seller Dashboard:
+Email: asha@ashastore.com
+Password: AshaStore2024!
+
+Razorpay Test Cards:
+Card: 4111 1111 1111 1111
+CVV: 123
+Expiry: 12/25
+
+═══════════════════════════════════════════════════════════
+
+YOUR URLS AFTER DEPLOYMENT
+─────────────────────────────────────────────────
+
+Customer Website:
+https://ashastore.com
+https://www.ashastore.com
+
+Seller Dashboard:
+https://admin.ashastore.com
+
+Backend API:
+https://asha-store-backend-XXXXX.onrender.com
+
+Razorpay Dashboard:
+https://dashboard.razorpay.com
+
+═══════════════════════════════════════════════════════════
+
+MONTHLY COSTS
+─────────────────────────────────────────────────
+
+Domain (GoDaddy):       ₹100/month
+Backend (Render Free):  ₹0/month
+Backend (Render Paid):  ₹580/month
+Frontend (Vercel):      ₹0/month (FREE!)
+Dashboard (Vercel):     ₹0/month (FREE!)
+SSL Certificates:       ₹0/month (FREE!)
+────────────────────────────────────
+Total (Free):           ₹100/month
+Total (Paid):           ₹680/month
+
+═══════════════════════════════════════════════════════════
+
+TIMELINE
+─────────────────────────────────────────────────
+
+GitHub Push:        2 minutes
+Backend Deploy:     10 minutes
+Customer Site:      5 minutes
+Seller Dashboard:   5 minutes
+Domain Setup:       10 minutes
+DNS Wait:           30-60 minutes
+────────────────────────────────────
+Total:              ~1.5-2 hours
+
+═══════════════════════════════════════════════════════════
+
+📖 FULL GUIDE: CLICK_BY_CLICK_DEPLOY.md
+⚡ QUICK REF: QUICK_DEPLOY_STEPS.txt
+📋 CHECKLIST: RELEASE_CHECKLIST.md
+
+═══════════════════════════════════════════════════════════
+
+READY! FOLLOW THESE EXACT STEPS AND YOU'LL BE LIVE! 🚀
