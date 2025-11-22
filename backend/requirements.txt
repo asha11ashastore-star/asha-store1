@@ -3,7 +3,7 @@ uvicorn[standard]==0.21.0
 sqlalchemy==1.4.48
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
-pydantic==1.10.12
+pydantic==1.10.13
 python-dotenv==1.0.0
 razorpay==1.4.1
 slowapi==0.1.9
