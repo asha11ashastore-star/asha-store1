@@ -7,6 +7,7 @@ from app.models import UserRole, OrderStatus, PaymentStatus, ProductStatus, Cate
 # Base schemas
 class BaseSchema(BaseModel):
     class Config:
+        orm_mode = True  # Pydantic v1 compatibility
         from_attributes = True
 
 # User schemas
