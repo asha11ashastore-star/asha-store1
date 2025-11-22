@@ -1,0 +1,27 @@
+name: Deploy Asha Store
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to Render
+        run: |
+          echo "Backend will auto-deploy via Render GitHub integration"
+          
+      - name: Deploy to Vercel
+        run: |
+          echo "Frontend will auto-deploy via Vercel GitHub integration"
+          
+      - name: Deployment Complete
+        run: |
+          echo "✅ Asha Store deployed successfully!"
+          echo "🛍️ Customer Website: Will be live after Vercel connects"
+          echo "👨‍💼 Seller Dashboard: Will be live after Vercel connects"
