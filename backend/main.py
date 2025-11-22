@@ -6,8 +6,8 @@ from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-import sentry_sdk
-from sentry_sdk.integrations.fastapi import FastApiIntegration
+# import sentry_sdk
+# from sentry_sdk.integrations.fastapi import FastApiIntegration
 # from sentry_sdk.integrations.sqlalchemy import SqlAlchemyIntegration
 import logging
 import time
@@ -25,17 +25,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize Sentry for error tracking
-if settings.sentry_dsn:
-    sentry_sdk.init(
-        dsn=settings.sentry_dsn,
-        integrations=[
-            FastApiIntegration(auto_enabling_integrations=True),
-            # SqlAlchemyIntegration(),
-        ],
-        traces_sample_rate=1.0 if settings.environment == "development" else 0.1,
-        environment=settings.environment,
-    )
+# Initialize Sentry for error tracking (DISABLED)
+# if settings.sentry_dsn:
+#     sentry_sdk.init(
+#         dsn=settings.sentry_dsn,
+#         integrations=[
+#             FastApiIntegration(auto_enabling_integrations=True),
+#             # SqlAlchemyIntegration(),
+#         ],
+#         traces_sample_rate=1.0 if settings.environment == "development" else 0.1,
+#         environment=settings.environment,
+#     )
 
 # Rate limiter
 limiter = Limiter(key_func=get_remote_address)
