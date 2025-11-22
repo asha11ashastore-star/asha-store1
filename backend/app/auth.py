@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional, Union
-from jose import JWTError, jwt
+import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Depends
@@ -76,7 +76,7 @@ class AuthManager:
             if payload.get("type") != token_type:
                 return None
             return payload
-        except JWTError as e:
+        except Exception as e:
             logger.error(f"JWT Error: {e}")
             return None
 
@@ -121,7 +121,7 @@ def get_current_user(
         if user_id is None:
             raise credentials_exception
             
-    except JWTError:
+    except Exception:
         raise credentials_exception
         
     user = auth_manager.get_user_by_id(db, user_id=user_id)
