@@ -1,7 +1,7 @@
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
+# from sendgrid import SendGridAPIClient
+# from sendgrid.helpers.mail import Mail, Email, To, Content
 from typing import Dict, Any, List, Optional
-from jinja2 import Environment, FileSystemLoader, Template
+# from jinja2 import Environment, FileSystemLoader, Template
 from app.config import settings
 from app.models import User, Order
 import logging
@@ -11,15 +11,19 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     def __init__(self):
-        self.sg = SendGridAPIClient(api_key=settings.sendgrid_api_key)
-        self.from_email = Email(settings.from_email, settings.from_name)
+        # SendGrid disabled - email functionality optional
+        # self.sg = SendGridAPIClient(api_key=settings.sendgrid_api_key)
+        # self.from_email = Email(settings.from_email, settings.from_name)
+        self.sg = None
+        self.from_email = None
+        self.jinja_env = None
         
-        # Setup Jinja2 environment for email templates
-        template_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'emails')
-        self.jinja_env = Environment(
-            loader=FileSystemLoader(template_dir),
-            autoescape=True
-        )
+        # Setup Jinja2 environment for email templates (DISABLED)
+        # template_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'templates', 'emails')
+        # self.jinja_env = Environment(
+        #     loader=FileSystemLoader(template_dir),
+        #     autoescape=True
+        # )
     
     def send_email(
         self, 
@@ -29,45 +33,14 @@ class EmailService:
         plain_content: Optional[str] = None,
         template_data: Optional[Dict[str, Any]] = None
     ) -> bool:
-        """Send email using SendGrid"""
-        try:
-            to = To(to_email)
-            content = Content("text/html", html_content)
-            
-            mail = Mail(
-                from_email=self.from_email,
-                to_emails=to,
-                subject=subject,
-                html_content=content
-            )
-            
-            if plain_content:
-                mail.content = [
-                    Content("text/plain", plain_content),
-                    Content("text/html", html_content)
-                ]
-            
-            response = self.sg.send(mail)
-            
-            if response.status_code in [200, 201, 202]:
-                logger.info(f"Email sent successfully to {to_email}")
-                return True
-            else:
-                logger.error(f"Email sending failed with status {response.status_code}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Email sending failed: {e}")
-            return False
+        """Send email using SendGrid (DISABLED - just logging)"""
+        logger.info(f"Email sending disabled - would send to {to_email} with subject: {subject}")
+        return True  # Return True to not break application flow
     
     def render_template(self, template_name: str, context: Dict[str, Any]) -> str:
-        """Render email template"""
-        try:
-            template = self.jinja_env.get_template(template_name)
-            return template.render(**context)
-        except Exception as e:
-            logger.error(f"Template rendering failed: {e}")
-            return ""
+        """Render email template (DISABLED)"""
+        logger.info(f"Email template rendering disabled - would render: {template_name}")
+        return ""  # Return empty string
     
     def send_welcome_email(self, user: User) -> bool:
         """Send welcome email to new user"""
