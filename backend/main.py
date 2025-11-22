@@ -216,6 +216,16 @@ async def startup_event():
     logger.info(f"Environment: {settings.environment}")
     logger.info(f"Debug mode: {settings.debug}")
     
+    # Create database tables if they don't exist
+    try:
+        from app.database import create_tables
+        logger.info("Creating database tables...")
+        create_tables()
+        logger.info("Database tables created/verified successfully!")
+    except Exception as e:
+        logger.error(f"Error creating tables: {e}")
+        # Don't fail startup - tables might already exist
+    
     # Check database connection
     if not check_db_connection():
         logger.error("Database connection failed on startup")
