@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/company", tags=["Company Info"])
 
 @router.get("/info", response_model=CompanyInfoResponse)
-async def get_company_info(db: Session = Depends(get_db)):
+def get_company_info(db: Session = Depends(get_db)):
     """Get company information (public endpoint)"""
     try:
         company_info = db.query(CompanyInfo).first()
@@ -68,7 +68,7 @@ async def get_company_info(db: Session = Depends(get_db)):
         )
 
 @router.put("/info", response_model=CompanyInfoResponse)
-async def update_company_info(
+def update_company_info(
     update_data: CompanyInfoUpdate,
     current_seller: User = Depends(get_current_seller),
     db: Session = Depends(get_db)
