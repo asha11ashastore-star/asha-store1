@@ -183,6 +183,56 @@ async def initialize_database():
         logger.error(f"Database initialization failed: {e}")
         raise HTTPException(status_code=500, detail=f"Database initialization failed: {str(e)}")
 
+# Reset user password endpoint (temporary for production fix)
+@app.post("/reset-seller-password")
+def reset_seller_password():
+    """Reset seller password - temporary endpoint for production fix"""
+    try:
+        from app.database import SessionLocal
+        from app.models import User
+        from app.auth import auth_manager
+        
+        db = SessionLocal()
+        try:
+            # Find user
+            user = db.query(User).filter(User.email == "asha@ashastore.com").first()
+            if user:
+                # Reset password
+                new_password = "AshaStore2024!"
+                user.hashed_password = auth_manager.get_password_hash(new_password)
+                db.commit()
+                return {
+                    "status": "success",
+                    "message": "Password reset successfully",
+                    "email": "asha@ashastore.com",
+                    "new_password": new_password
+                }
+            else:
+                # Create new user
+                user = User(
+                    email="asha@ashastore.com",
+                    username="ashastore",
+                    first_name="Asha",
+                    last_name="Dhaundiyal",
+                    hashed_password=auth_manager.get_password_hash("AshaStore2024!"),
+                    role="seller",
+                    is_active=True,
+                    is_verified=True
+                )
+                db.add(user)
+                db.commit()
+                return {
+                    "status": "success",
+                    "message": "User created successfully",
+                    "email": "asha@ashastore.com",
+                    "password": "AshaStore2024!"
+                }
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"Password reset failed: {e}")
+        return {"status": "error", "message": str(e)}
+
 # Root endpoint
 @app.get("/")
 async def root():
