@@ -42,7 +42,17 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await api.post('/api/v1/auth/login', { email, password });
+      
+      // Check if response contains an error
+      if (response.data.error) {
+        throw new Error(response.data.message || 'Login failed');
+      }
+      
       const { access_token, user: userData } = response.data;
+      
+      if (!access_token || !userData) {
+        throw new Error('Invalid response from server');
+      }
       
       if (userData.role !== 'seller' && userData.role !== 'admin') {
         throw new Error('Access denied. Seller account required.');
@@ -56,7 +66,9 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      throw new Error(error.response?.data?.detail || 'Login failed');
+      console.error('Login error details:', error.response?.data);
+      const errorMessage = error.response?.data?.message || error.response?.data?.detail || error.message || 'Login failed';
+      throw new Error(errorMessage);
     }
   };
 
