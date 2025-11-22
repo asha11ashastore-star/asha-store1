@@ -40,7 +40,7 @@ def calculate_order_totals(items: List[dict]) -> dict:
     }
 
 @router.post("/customer", response_model=OrderResponse)
-async def create_customer_order(
+def create_customer_order(
     order_data: CustomerOrderCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -73,7 +73,7 @@ async def create_customer_order(
         )
         
         # Continue with normal order creation logic
-        return await create_order_internal(order_create_data, current_user, db)
+        return create_order_internal(order_create_data, current_user, db)
         
     except Exception as e:
         logger.error(f"Customer order creation failed: {e}")
@@ -83,7 +83,7 @@ async def create_customer_order(
             detail="Order creation failed"
         )
 
-async def create_order_internal(
+def create_order_internal(
     order_data: OrderCreate,
     current_user: User,
     db: Session
@@ -184,16 +184,16 @@ async def create_order_internal(
         )
 
 @router.post("/", response_model=OrderResponse)
-async def create_order(
+def create_order(
     order_data: OrderCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Create a new order"""
-    return await create_order_internal(order_data, current_user, db)
+    return create_order_internal(order_data, current_user, db)
 
 @router.get("/seller", response_model=PaginatedResponse)
-async def get_seller_orders(
+def get_seller_orders(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     status_filter: Optional[OrderStatus] = None,
@@ -300,7 +300,7 @@ async def get_seller_orders(
         )
 
 @router.put("/{order_id}/status")
-async def update_order_status(
+def update_order_status(
     order_id: int,
     status_update: dict,
     current_seller: User = Depends(get_current_seller),
@@ -351,7 +351,7 @@ async def update_order_status(
         )
 
 @router.get("/", response_model=PaginatedResponse)
-async def get_orders(
+def get_orders(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     status_filter: Optional[OrderStatus] = None,
@@ -405,7 +405,7 @@ async def get_orders(
         )
 
 @router.get("/{order_id}", response_model=OrderResponse)
-async def get_order(
+def get_order(
     order_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -448,7 +448,7 @@ async def get_order(
         )
 
 @router.put("/{order_id}/cancel")
-async def cancel_order(
+def cancel_order(
     order_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -562,7 +562,7 @@ async def get_seller_orders(
         )
 
 @router.put("/items/{item_id}/status")
-async def update_order_item_status(
+def update_order_item_status(
     item_id: int,
     new_status: OrderStatus,
     current_seller: User = Depends(get_current_seller),
