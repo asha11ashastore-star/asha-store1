@@ -15,7 +15,7 @@ import uuid
 
 from app.config import settings, CORS_ORIGINS
 from app.database import check_db_connection
-from app.routers import auth, products, cart, orders, payments, company, products_fixed, products_detail, razorpay_link, guest_orders
+from app.routers import auth, products, cart, orders, payments, company, products_fixed, products_detail, razorpay_link, guest_orders, products_dashboard
 import uvicorn
 
 # Configure logging
@@ -186,7 +186,6 @@ app.include_router(payments.router, prefix="/api/v1")
 app.include_router(company.router, prefix="/api/v1")
 
 # Include dashboard products router
-from app.routers import products_dashboard
 app.include_router(products_dashboard.router, prefix="/api/v1")
 
 # Include fixed products router
