@@ -107,11 +107,15 @@ def login_user(
         
         logger.info(f"User logged in successfully: {user.email}")
         
+        # Convert user to UserResponse
+        from app.schemas import UserResponse
+        user_response = UserResponse.from_orm(user)
+        
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             expires_in=auth_manager.access_token_expire_minutes * 60,
-            user=user
+            user=user_response
         )
         
     except HTTPException:
@@ -124,7 +128,7 @@ def login_user(
         )
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(
+def refresh_token(
     refresh_request: RefreshTokenRequest,
     db: Session = Depends(get_db)
 ):
@@ -150,11 +154,15 @@ async def refresh_token(
         access_token = auth_manager.create_access_token(data={"sub": str(user.id)})
         new_refresh_token = auth_manager.create_refresh_token(data={"sub": str(user.id)})
         
+        # Convert user to UserResponse
+        from app.schemas import UserResponse
+        user_response = UserResponse.from_orm(user)
+        
         return TokenResponse(
             access_token=access_token,
             refresh_token=new_refresh_token,
             expires_in=auth_manager.access_token_expire_minutes * 60,
-            user=user
+            user=user_response
         )
         
     except HTTPException:
