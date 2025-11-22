@@ -81,19 +81,15 @@ def register_user(
         )
 
 @router.post("/login", response_model=TokenResponse)
-async def login_user(
+def login_user(
     user_credentials: UserLogin,
     db: Session = Depends(get_db)
 ):
     """Authenticate user and return tokens"""
     try:
-        # Apply rate limiting
-        await rate_limiter.check_rate_limit("login", user_credentials.email)
-        
         # Authenticate user
         user = auth_manager.authenticate_user(db, user_credentials.email, user_credentials.password)
         if not user:
-            await rate_limiter.increment("login", user_credentials.email)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password"
