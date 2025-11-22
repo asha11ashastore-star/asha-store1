@@ -18,18 +18,18 @@ class Settings(BaseSettings):
     
     # Razorpay
     razorpay_key_id: str
-    razorpay_key_secret: str
-    razorpay_webhook_secret: str
+    razorpay_key_secret: Optional[str] = None
+    razorpay_webhook_secret: Optional[str] = None
     
     # Cloudinary
-    cloudinary_cloud_name: str
-    cloudinary_api_key: str
-    cloudinary_api_secret: str
+    cloudinary_cloud_name: Optional[str] = None
+    cloudinary_api_key: Optional[str] = None
+    cloudinary_api_secret: Optional[str] = None
     
     # SendGrid
-    sendgrid_api_key: str
-    from_email: str
-    from_name: str = "ShopAll Store"
+    sendgrid_api_key: Optional[str] = None
+    from_email: Optional[str] = "noreply@ashastore.com"
+    from_name: str = "Asha Store"
     
     # Sentry
     sentry_dsn: Optional[str] = None

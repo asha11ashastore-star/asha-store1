@@ -16,9 +16,9 @@ services:
     envVars:
       - key: DATABASE_URL
         value: sqlite:///./shopall.db
-      - key: JWT_SECRET
+      - key: SECRET_KEY
         value: asha_store_secret_key_2024_secure_production
-      - key: JWT_ALGORITHM
+      - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 1440
@@ -26,5 +26,9 @@ services:
         value: 7
       - key: RAZORPAY_KEY_ID
         value: rzp_test_FVZPTn18225397949705
-      - key: ALLOWED_ORIGINS
-        value: https://ashastore.com,https://www.ashastore.com,https://admin.ashastore.com
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: FRONTEND_URL
+        value: https://ashastore.com
