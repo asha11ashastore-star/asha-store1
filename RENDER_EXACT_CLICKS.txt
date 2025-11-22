@@ -1,0 +1,131 @@
+═══════════════════════════════════════════════════════════════
+🚀 RENDER DEPLOYMENT - EXACT CLICKS
+═══════════════════════════════════════════════════════════════
+
+YOUR GITHUB REPO: https://github.com/asha11ashastore-star/asha-store1
+
+RENDER DASHBOARD: https://dashboard.render.com (OPEN NOW!)
+
+═══════════════════════════════════════════════════════════════
+
+CLICK-BY-CLICK INSTRUCTIONS:
+───────────────────────────────────────────────────────────────
+
+1. In Render dashboard, find blue button that says "New +"
+   → CLICK IT
+
+2. Menu appears with options
+   → CLICK "Web Service"
+
+3. Page says "Create a new Web Service"
+   → CLICK "Build and deploy from a Git repository"
+   → CLICK "Next"
+
+4. Connect GitHub section appears
+   → CLICK "Connect GitHub" button
+   → Authorize Render (if asked)
+   → You'll see list of your repositories
+
+5. Find "asha-store1" in the list
+   → CLICK "Connect" button next to it
+
+6. Configuration page appears. Fill in:
+
+   Name field:
+   → TYPE: asha-store-backend
+
+   Region dropdown:
+   → SELECT: Singapore
+
+   Branch field:
+   → TYPE: main (should be default)
+
+   Root Directory field:
+   → TYPE: backend
+
+   Runtime dropdown:
+   → SELECT: Python 3
+
+   Build Command field:
+   → TYPE: pip install -r requirements.txt
+
+   Start Command field:
+   → TYPE: uvicorn main:app --host 0.0.0.0 --port $PORT
+
+   Instance Type dropdown:
+   → SELECT: Free
+
+7. Scroll down, find "Advanced" button
+   → CLICK IT
+
+8. Find "Environment Variables" section
+   → CLICK "+ Add Environment Variable" for each:
+
+   Variable 1:
+   Key: DATABASE_URL
+   Value: sqlite:///./shopall.db
+
+   Variable 2:
+   Key: JWT_SECRET
+   Value: asha_store_secret_key_2024_secure_production
+
+   Variable 3:
+   Key: JWT_ALGORITHM
+   Value: HS256
+
+   Variable 4:
+   Key: ACCESS_TOKEN_EXPIRE_MINUTES
+   Value: 1440
+
+   Variable 5:
+   Key: REFRESH_TOKEN_EXPIRE_DAYS
+   Value: 7
+
+   Variable 6:
+   Key: RAZORPAY_KEY_ID
+   Value: rzp_test_FVZPTn18225397949705
+
+   Variable 7:
+   Key: ALLOWED_ORIGINS
+   Value: https://ashastore.com,https://www.ashastore.com,https://admin.ashastore.com
+
+9. Scroll to bottom
+   → CLICK green "Create Web Service" button
+
+10. Deployment starts!
+    → Watch the logs (black box at bottom)
+    → Wait 5-10 minutes
+    → Will say "Your service is live!" when done
+
+11. At top of page, you'll see your URL
+    → Example: https://asha-store-backend-abc123.onrender.com
+    → COPY THIS URL - YOU'LL NEED IT!
+
+═══════════════════════════════════════════════════════════════
+
+AFTER DEPLOYMENT:
+───────────────────────────────────────────────────────────────
+
+Test your backend:
+1. Take your backend URL
+2. Add /health to the end
+3. Visit: https://asha-store-backend-abc123.onrender.com/health
+4. Should show: {"status":"healthy"}
+
+✅ IF YOU SEE THAT, BACKEND IS DEPLOYED!
+
+═══════════════════════════════════════════════════════════════
+
+SAVE YOUR BACKEND URL!
+───────────────────────────────────────────────────────────────
+
+Write it down:
+https://asha-store-backend-__________.onrender.com
+
+You'll need this for Vercel deployment!
+
+═══════════════════════════════════════════════════────────════
+
+NEXT: Deploy websites to Vercel!
+
+═══════════════════════════════════════════════════════════════
