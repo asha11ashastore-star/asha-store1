@@ -24,7 +24,7 @@ async def reset_rate_limit():
 security = HTTPBearer()
 
 @router.post("/register", response_model=UserResponse)
-async def register_user(
+def register_user(
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ):
@@ -56,7 +56,7 @@ async def register_user(
             username=user_data.username,
             first_name=user_data.first_name,
             last_name=user_data.last_name,
-            phone=user_data.phone,
+            phone=user_data.phone if user_data.phone else None,
             hashed_password=hashed_password,
             role=UserRole(user_data.role),
             is_active=True,
@@ -67,21 +67,7 @@ async def register_user(
         db.commit()
         db.refresh(db_user)
         
-        # Send welcome email (temporarily disabled for testing)
-        try:
-            logger.info(f"Welcome email would be sent to {db_user.email} (disabled for testing)")
-            # if user_data.role == UserRole.BUYER:
-            #     email_service.send_welcome_email(db_user)
-            # else:
-            #     # For sellers, send verification email
-            #     verification_token = auth_manager.create_access_token(
-            #         data={"sub": str(db_user.id), "type": "email_verification"}
-            #     )
-            #     email_service.send_seller_verification_email(db_user, verification_token)
-        except Exception as e:
-            logger.error(f"Failed to send welcome email: {e}")
-        
-        logger.info(f"User registered successfully: {db_user.email}")
+        logger.info(f"User registered successfully: {db_user.email}, role: {db_user.role}")
         return db_user
         
     except HTTPException:
