@@ -7,17 +7,13 @@ import apiService from '../../services/api'
 
 export default function About() {
   const [companyInfo, setCompanyInfo] = useState({
-    artisans_supported: '500+',
-    villages_reached: '50+', 
-    happy_customers: '10,000+',
-    years_of_excellence: '5+',
-    features: [
-      { title: '100% Handwoven', description: 'Every product is authentically handcrafted by skilled artisans' },
-      { title: 'Premium Quality', description: 'Carefully curated collection with the finest materials' },
-      { title: 'Ethical Sourcing', description: 'Direct partnerships ensuring fair wages for artisans' },
-      { title: 'Cultural Heritage', description: 'Preserving traditional techniques and designs' }
-    ]
+    artisans_supported: '',
+    villages_reached: '', 
+    happy_customers: '',
+    years_of_excellence: '',
+    features: []
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchCompanyInfo()
@@ -26,10 +22,13 @@ export default function About() {
   const fetchCompanyInfo = async () => {
     try {
       const data = await apiService.request('/api/v1/company/info')
-      setCompanyInfo(data)
+      if (data) {
+        setCompanyInfo(data)
+      }
     } catch (error) {
       console.error('Error fetching company info:', error)
-      // Keep default values if API fails
+    } finally {
+      setLoading(false)
     }
   }
   return (
