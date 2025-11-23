@@ -54,10 +54,24 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Add CORS middleware
+# Custom CORS to allow all Vercel deployment URLs
+from typing import List
+
+def verify_origin(origin: str, allowed_origins: List[str]) -> bool:
+    """Check if origin is allowed, including Vercel deployment URLs"""
+    if origin in allowed_origins:
+        return True
+    # Allow all Vercel deployment URLs for our projects
+    if origin and origin.startswith("https://") and origin.endswith("-ashastore.vercel.app"):
+        if "react-dashboard-" in origin or "customer-website-" in origin:
+            return True
+    return False
+
+# Add CORS middleware with custom origin verification
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
+    allow_origin_regex=r"https://.*-ashastore\.vercel\.app",  # Allow all Vercel deployment URLs
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
