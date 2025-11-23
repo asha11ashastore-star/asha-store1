@@ -87,9 +87,12 @@ def login_user(
 ):
     """Authenticate user and return tokens"""
     try:
+        logger.info(f"Login attempt for: {user_credentials.email}")
+        
         # Authenticate user
         user = auth_manager.authenticate_user(db, user_credentials.email, user_credentials.password)
         if not user:
+            logger.warning(f"Authentication failed for: {user_credentials.email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password"

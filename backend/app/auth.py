@@ -88,12 +88,22 @@ class AuthManager:
 
     def authenticate_user(self, db: Session, email: str, password: str) -> Optional[User]:
         """Authenticate user with email and password"""
-        user = db.query(User).filter(User.email == email).first()
-        if not user:
+        try:
+            user = db.query(User).filter(User.email == email).first()
+            if not user:
+                logger.info(f"User not found: {email}")
+                return None
+            
+            logger.info(f"User found: {email}, verifying password...")
+            if not self.verify_password(password, user.hashed_password):
+                logger.warning(f"Password verification failed for: {email}")
+                return None
+            
+            logger.info(f"Password verified successfully for: {email}")
+            return user
+        except Exception as e:
+            logger.error(f"Error in authenticate_user: {e}", exc_info=True)
             return None
-        if not self.verify_password(password, user.hashed_password):
-            return None
-        return user
 
     def get_user_by_email(self, db: Session, email: str) -> Optional[User]:
         """Get user by email"""
