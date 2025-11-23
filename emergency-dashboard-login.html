@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 Emergency Dashboard Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 50%, #bd2130 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #ffc107;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #c82333;
+            transform: scale(1.02);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 EMERGENCY Dashboard Login</h1>
+        <p style="color: #666;">Bypass login - Use ONLY if normal login fails</p>
+        
+        <div class="warning">
+            ⚠️ WARNING: This bypasses password verification!<br>
+            Use only for: owner@ashastore.com or seller@ashastore.com<br>
+            This endpoint will be deleted after fixing normal login.
+        </div>
+
+        <h3>Click to Login:</h3>
+        
+        <button class="btn-primary" onclick="emergencyLogin('owner@ashastore.com')">
+            🔓 Login as owner@ashastore.com
+        </button>
+        
+        <button class="btn-primary" onclick="emergencyLogin('seller@ashastore.com')">
+            🔓 Login as seller@ashastore.com
+        </button>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://asha-store-backend.onrender.com/api/v1/emergency/login';
+        const DASHBOARD_URL = 'https://react-dashboard-ashastore.vercel.app';
+
+        async function emergencyLogin(email) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status loading';
+            statusDiv.innerHTML = `⏳ Getting emergency access token for ${email}...`;
+
+            try {
+                const response = await fetch(`${API_URL}/${email}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `
+                        ✅ Emergency token obtained!<br>
+                        User: ${data.user.first_name} ${data.user.last_name}<br>
+                        Role: ${data.user.role}<br>
+                        <br>
+                        🚀 Redirecting to dashboard in 2 seconds...
+                    `;
+
+                    // Store token in localStorage (for dashboard)
+                    localStorage.setItem('authToken', data.access_token);
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = DASHBOARD_URL + '/dashboard';
+                    }, 2000);
+
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `
+                        ❌ Emergency login failed<br>
+                        Status: ${response.status}<br>
+                        Error: ${data.detail || JSON.stringify(data)}
+                    `;
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `
+                    ❌ Network error: ${error.message}<br>
+                    <br>
+                    Make sure backend is deployed and running.
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
