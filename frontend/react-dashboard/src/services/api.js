@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// HARDCODED PRODUCTION URL - NO ENV VARS NEEDED
 const API_BASE_URL = 'https://asha-store-backend.onrender.com';
 
 const api = axios.create({
@@ -7,6 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout
 });
 
 // Request interceptor to add auth token

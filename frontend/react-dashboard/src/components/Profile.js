@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Shield, Calendar, Store } from 'lucide-react';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_URL || 'https://asha-store-backend.onrender.com';
+// HARDCODED - NO ENV VARS
+const API_BASE_URL = 'https://asha-store-backend.onrender.com';
 
 const Profile = () => {
   const { user } = useAuth();
