@@ -354,17 +354,17 @@ export default function Header() {
             <div className="border-t border-gray-200 pt-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Shop by Weave</p>
               <div className="space-y-3 pl-4">
-                <Link href="/collections?weave=kantha" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Kantha</Link>
-                <Link href="/collections?weave=jamdani" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Jamdani</Link>
-                <Link href="/collections?weave=handloom" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Handloom</Link>
-                <Link href="/collections?weave=shibori" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Tie N Dye (Shibori)</Link>
-                <Link href="/collections?weave=handblock" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Handblock</Link>
-                <Link href="/collections?weave=batik" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Batik</Link>
-                <Link href="/collections?weave=ajrakh" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Ajrakh</Link>
-                <Link href="/collections?weave=khadi" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Khadi</Link>
-                <Link href="/collections?weave=tissue" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Tissue</Link>
-                <Link href="/collections?weave=jacquard" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Jacquard</Link>
-                <Link href="/collections?weave=kota" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Kota</Link>
+                <Link href="/collections?category=kantha_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Kantha</Link>
+                <Link href="/collections?category=jamdani_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Jamdani</Link>
+                <Link href="/collections?category=handloom_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Handloom</Link>
+                <Link href="/collections?category=shibori_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Tie N Dye (Shibori)</Link>
+                <Link href="/collections?category=handblock_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Handblock</Link>
+                <Link href="/collections?category=batik_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Batik</Link>
+                <Link href="/collections?category=ajrakh_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Ajrakh</Link>
+                <Link href="/collections?category=khadi_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Khadi</Link>
+                <Link href="/collections?category=tissue_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Tissue</Link>
+                <Link href="/collections?category=jacquard_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Jacquard</Link>
+                <Link href="/collections?category=kota_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Kota</Link>
               </div>
             </div>
 
@@ -372,17 +372,17 @@ export default function Header() {
             <div className="border-t border-gray-200 pt-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Shop by Variety</p>
               <div className="space-y-3 pl-4">
-                <Link href="/collections?variety=handloom_cotton" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Handloom Cotton</Link>
-                <Link href="/collections?variety=tangail_cotton" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Tangail Cotton</Link>
-                <Link href="/collections?variety=handloom_silk" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Handloom Silk</Link>
-                <Link href="/collections?variety=matka_silk" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Matka Silk</Link>
-                <Link href="/collections?variety=tussar_silk" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Tussar Silk</Link>
-                <Link href="/collections?variety=muslin_silk" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Muslin Silk</Link>
-                <Link href="/collections?variety=katan_silk" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Katan Silk</Link>
-                <Link href="/collections?variety=dhakii" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Dhakii</Link>
-                <Link href="/collections?variety=mulberry_silk" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Mulberry Silk</Link>
-                <Link href="/collections?variety=dhonekali" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Dhonekali</Link>
-                <Link href="/collections?variety=satin_silk" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Satin Silk</Link>
+                <Link href="/collections?category=handloom_cotton_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Handloom Cotton</Link>
+                <Link href="/collections?category=tangail_cotton_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Tangail Cotton</Link>
+                <Link href="/collections?category=handloom_silk_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Handloom Silk</Link>
+                <Link href="/collections?category=matka_silk_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Matka Silk</Link>
+                <Link href="/collections?category=tussar_silk_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Tussar Silk</Link>
+                <Link href="/collections?category=muslin_silk_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Muslin Silk</Link>
+                <Link href="/collections?category=katan_silk_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Katan Silk</Link>
+                <Link href="/collections?category=dhakil_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Dhakil</Link>
+                <Link href="/collections?category=mulberry_silk_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Mulberry Silk</Link>
+                <Link href="/collections?category=dhonekali_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Dhonekali</Link>
+                <Link href="/collections?category=satin_silk_saree" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm text-gray-600 hover:text-primary-brown">Satin Silk</Link>
               </div>
             </div>
           </div>

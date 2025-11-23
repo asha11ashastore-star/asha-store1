@@ -21,7 +21,7 @@ export default function CollectionsPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:8000/api/v1/products-fixed/')  // Use fixed endpoint
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}/api/v1/products`)
       
       if (response.ok) {
         const data = await response.json()
