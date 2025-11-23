@@ -1,17 +1,23 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import { useCart } from '../../components/CartProvider'
 
-export default function CollectionsPage() {
+function CollectionsContent() {
   const { addItem } = useCart()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  
+  // Initialize category from URL immediately
+  const initialCategory = searchParams.get('category') || 'all'
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  
+  console.log('🚀 Component mounted with category:', initialCategory)
+  console.log('🚀 URL params:', Object.fromEntries(searchParams.entries()))
 
   // Fetch products from API
   useEffect(() => {
@@ -61,9 +67,13 @@ export default function CollectionsPage() {
     return true
   })
 
-  // Generate category title
+  // Generate category title - compute directly from current state
   const getCategoryTitle = () => {
-    if (selectedCategory === 'all') {
+    // Use current selectedCategory state
+    const currentCategory = selectedCategory
+    console.log('🎯 getCategoryTitle called with selectedCategory:', currentCategory)
+    
+    if (currentCategory === 'all') {
       console.log('📍 Displaying title for: ALL')
       return 'ALL'
     }
@@ -110,6 +120,11 @@ export default function CollectionsPage() {
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Debug Info - Remove after testing */}
+        <div className="text-xs text-gray-400 text-center mb-2">
+          Debug: category="{selectedCategory}" | url="{searchParams.get('category') || 'none'}"
+        </div>
+        
         <h1 className="text-4xl md:text-5xl font-serif text-center mb-4 text-beige-800 tracking-wide" key={selectedCategory}>
           {getCategoryTitle()}
         </h1>
@@ -297,5 +312,20 @@ export default function CollectionsPage() {
 
       <Footer />
     </div>
+  )
+}
+
+export default function CollectionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-beige-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-beige-800 mx-auto mb-4"></div>
+          <p className="text-beige-600">Loading collections...</p>
+        </div>
+      </div>
+    }>
+      <CollectionsContent />
+    </Suspense>
   )
 }
