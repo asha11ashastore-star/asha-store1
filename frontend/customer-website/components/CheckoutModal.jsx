@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { useCart } from './CartProvider'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'
+
 export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
   const { items, getTotal, clearCart } = useCart()
   const [isLoading, setIsLoading] = useState(false)
@@ -84,7 +86,7 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       }
 
       // Save order to backend
-      const orderResponse = await fetch('http://localhost:8000/api/v1/guest-orders', {
+      const orderResponse = await fetch(`${API_BASE_URL}/api/v1/guest-orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

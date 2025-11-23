@@ -5,6 +5,8 @@ import Header from '../../../components/Header'
 import Footer from '../../../components/Footer'
 import { useCart } from '../../../components/CartProvider'
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'
+
 export default function ProductDetailPage() {
   const { id } = useParams()
   const router = useRouter()
@@ -28,7 +30,7 @@ export default function ProductDetailPage() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`http://localhost:8000/api/v1/products/${id}`)
+      const response = await fetch(`${API_BASE_URL}/api/v1/products/${id}`)
       
       if (response.ok) {
         const productData = await response.json()
@@ -219,7 +221,7 @@ export default function ProductDetailPage() {
               <div className="aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden">
                 {product.images && product.images.length > 0 ? (
                   <img 
-                    src={`http://localhost:8000${product.images[selectedImage]?.image_url || product.images[0]?.image_url}`}
+                    src={`${API_BASE_URL}${product.images[selectedImage]?.image_url || product.images[0]?.image_url}`}
                     alt={product.images[selectedImage]?.alt_text || product.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -255,7 +257,7 @@ export default function ProductDetailPage() {
                     }`}
                   >
                     <img 
-                      src={`http://localhost:8000${image.image_url}`}
+                      src={`${API_BASE_URL}${image.image_url}`}
                       alt={image.alt_text || product.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {

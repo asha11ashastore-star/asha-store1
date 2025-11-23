@@ -203,7 +203,7 @@ export default function CollectionsPage() {
                   <div className="h-64 bg-gradient-to-br from-beige-100 to-beige-200 flex items-center justify-center overflow-hidden rounded-t-lg">
                     {product.primary_image ? (
                       <img 
-                        src={`http://localhost:8000${product.primary_image}`}
+                        src={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}${product.primary_image}`}
                         alt={product.name}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         onError={(e) => {

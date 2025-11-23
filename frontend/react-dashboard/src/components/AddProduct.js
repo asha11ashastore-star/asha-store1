@@ -3,6 +3,8 @@ import { productsAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { Save, Package, IndianRupee, Shirt, Upload, X, Image } from 'lucide-react';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_URL || 'https://asha-store-backend.onrender.com';
+
 const AddProduct = () => {
   const [loading, setLoading] = useState(false);
   const [imageUploadLoading, setImageUploadLoading] = useState(false);
@@ -154,7 +156,7 @@ const AddProduct = () => {
         formData.append('files', image.file);
       });
 
-      const response = await fetch(`http://localhost:8000/api/v1/products/${productId}/images`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/products/${productId}/images`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
