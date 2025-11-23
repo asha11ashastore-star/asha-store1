@@ -5,6 +5,10 @@ import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import { useCart } from '../../components/CartProvider'
 
+// Force dynamic rendering - never cache this page
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 function CollectionsContent() {
   const { addItem } = useCart()
   const searchParams = useSearchParams()
