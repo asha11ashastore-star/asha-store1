@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://asha-store-backend.onrender.com';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -36,7 +36,7 @@ const Orders = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/guest-orders`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/orders/seller`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -45,7 +45,7 @@ const Orders = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setOrders(data || []);
+        setOrders(data.items || []);
       } else {
         throw new Error('Failed to fetch orders');
       }
@@ -60,17 +60,14 @@ const Orders = () => {
   const updateOrderStatus = async (orderId, orderStatus, paymentStatus = null) => {
     try {
       const token = localStorage.getItem('authToken');
-      const params = new URLSearchParams({ order_status: orderStatus });
-      if (paymentStatus) {
-        params.append('payment_status', paymentStatus);
-      }
       
-      const response = await fetch(`${API_BASE_URL}/api/v1/guest-orders/${orderId}/status?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ status: orderStatus })
       });
 
       if (response.ok) {
