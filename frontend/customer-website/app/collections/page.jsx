@@ -41,6 +41,8 @@ export default function CollectionsPage() {
   // Get filters from URL parameters
   useEffect(() => {
     const category = searchParams.get('category') || 'all'
+    console.log('📍 URL category parameter:', category)
+    console.log('📍 All search params:', Object.fromEntries(searchParams.entries()))
     setSelectedCategory(category)
   }, [searchParams])
 
@@ -61,6 +63,11 @@ export default function CollectionsPage() {
 
   // Generate category title
   const getCategoryTitle = () => {
+    if (selectedCategory === 'all') {
+      console.log('📍 Displaying title for: ALL')
+      return 'ALL'
+    }
+    
     const categoryNames = {
       'saree': 'ALL SAREES',
       'cotton_saree': 'COTTON SAREES',
@@ -93,7 +100,9 @@ export default function CollectionsPage() {
       'dupatta': 'DUPATTAS'
     }
     
-    return categoryNames[selectedCategory] || selectedCategory.replace('_', ' ').toUpperCase()
+    const title = categoryNames[selectedCategory] || selectedCategory.replace('_', ' ').toUpperCase()
+    console.log(`📍 Displaying title for "${selectedCategory}":`, title)
+    return title
   }
 
   return (
@@ -101,7 +110,7 @@ export default function CollectionsPage() {
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-4xl md:text-5xl font-serif text-center mb-4 text-beige-800 tracking-wide">
+        <h1 className="text-4xl md:text-5xl font-serif text-center mb-4 text-beige-800 tracking-wide" key={selectedCategory}>
           {getCategoryTitle()}
         </h1>
 
