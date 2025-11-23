@@ -14,19 +14,13 @@ function CollectionsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
-  // Initialize category from URL immediately
-  const initialCategory = searchParams.get('category') || 'all'
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   
-  console.log('🚀 Component mounted with category:', initialCategory)
-  console.log('🚀 URL params:', Object.fromEntries(searchParams.entries()))
-
-  // Fetch products from API
-  useEffect(() => {
-    fetchProducts()
-  }, [])
+  // Get category from URL - this updates on every render
+  const selectedCategory = searchParams.get('category') || 'all'
+  
+  console.log('🎯 Current category from URL:', selectedCategory)
 
   const fetchProducts = async () => {
     try {
@@ -48,13 +42,11 @@ function CollectionsContent() {
     }
   }
 
-  // Get filters from URL parameters
+  // Fetch products on mount
   useEffect(() => {
-    const category = searchParams.get('category') || 'all'
-    console.log('📍 URL category parameter:', category)
-    console.log('📍 All search params:', Object.fromEntries(searchParams.entries()))
-    setSelectedCategory(category)
-  }, [searchParams])
+    console.log('📍 Fetching products for category:', selectedCategory)
+    fetchProducts()
+  }, [])
 
   // Filter products based on category
   const filteredProducts = products.filter(product => {

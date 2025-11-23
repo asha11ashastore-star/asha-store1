@@ -36,7 +36,7 @@ const Orders = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/orders/seller`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -45,9 +45,12 @@ const Orders = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setOrders(data.items || []);
+        console.log('Orders response:', data);
+        setOrders(data.items || data || []);
       } else {
-        throw new Error('Failed to fetch orders');
+        const errorText = await response.text();
+        console.error('Orders error:', response.status, errorText);
+        throw new Error(`Failed to fetch orders: ${response.status}`);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
