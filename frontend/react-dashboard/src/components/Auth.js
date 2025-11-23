@@ -26,9 +26,11 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Use AuthContext login for proper JWT authentication
-      await login(formData.email, formData.password);
+      const result = await login(formData.email, formData.password);
+      console.log('Login successful!', result);
       toast.success('Welcome back, Asha!');
+      // Force navigation after successful login
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Login error:', error);
       if (error.message.includes('Seller account required')) {
