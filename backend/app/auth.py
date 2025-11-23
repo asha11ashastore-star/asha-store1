@@ -28,16 +28,22 @@ class AuthManager:
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash"""
+        logger.info(f"Verifying password - Hash type: {hashed_password[:10]}...")
+        
         # Handle test SHA256 hashes (for demo purposes only)
         if hashed_password.startswith("sha256$"):
             import hashlib
             expected_hash = hashed_password[7:]  # Remove 'sha256$' prefix
             actual_hash = hashlib.sha256(plain_password.encode()).hexdigest()
-            return expected_hash == actual_hash
+            match = expected_hash == actual_hash
+            logger.info(f"SHA256 verification result: {match}")
+            return match
         
         # Use bcrypt for production passwords
         try:
-            return pwd_context.verify(plain_password, hashed_password)
+            match = pwd_context.verify(plain_password, hashed_password)
+            logger.info(f"Bcrypt verification result: {match}")
+            return match
         except Exception as e:
             logger.error(f"Password verification error: {e}")
             return False

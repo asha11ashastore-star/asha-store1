@@ -15,7 +15,7 @@ import uuid
 
 from app.config import settings, CORS_ORIGINS
 from app.database import check_db_connection
-from app.routers import auth, products, cart, orders, payments, company, products_fixed, products_detail, razorpay_link, guest_orders, products_dashboard
+from app.routers import auth, products, cart, orders, payments, company, products_fixed, products_detail, razorpay_link, guest_orders, products_dashboard, admin_reset
 import uvicorn
 
 # Configure logging
@@ -260,6 +260,7 @@ async def root():
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(admin_reset.router, prefix="/api/v1")  # TEMPORARY - DELETE AFTER FIXING PASSWORD
 app.include_router(products.router, prefix="/api/v1")
 app.include_router(cart.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
