@@ -62,6 +62,22 @@ export default function PaymentSuccessPage() {
           // Dispatch custom event to update cart count
           window.dispatchEvent(new Event('cartUpdated'))
           console.log('Cart cleared after successful payment')
+          
+          // Save this order to recent guest orders for "My Orders" page
+          try {
+            const recentOrders = JSON.parse(localStorage.getItem('guestOrders') || '[]')
+            const orderInfo = {
+              orderNumber: orderNumber,
+              timestamp: new Date().toISOString(),
+              paymentId: paymentId || paymentLinkId || 'completed'
+            }
+            // Add to beginning of array, keep last 10 orders only
+            recentOrders.unshift(orderInfo)
+            localStorage.setItem('guestOrders', JSON.stringify(recentOrders.slice(0, 10)))
+            console.log('✅ Order saved to guest orders history')
+          } catch (e) {
+            console.warn('Could not save to guest orders:', e)
+          }
         } catch (e) {
           console.warn('Could not clear cart:', e)
         }
