@@ -66,23 +66,12 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
     }
 
     setIsLoading(true)
-    
-    // Open window immediately (synchronously) to prevent popup blocker
-    // We'll set the URL later after API responds
-    let paymentWindow = null
-    try {
-      paymentWindow = window.open('about:blank', '_blank')
-      console.log('Payment window opened (will load URL after API response)')
-    } catch (e) {
-      console.warn('Could not pre-open window:', e)
-    }
 
     try {
       const totalAmount = parseFloat(getTotal())
       
       // Verify amount
       if (!totalAmount || totalAmount <= 0) {
-        if (paymentWindow) paymentWindow.close()
         throw new Error('Invalid order amount. Please check your cart.')
       }
       
@@ -165,87 +154,25 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       console.log('🔒 Amount is LOCKED in Razorpay - Customer CANNOT change it!')
       console.log('='.repeat(50))
       
-      // Set the payment URL in the pre-opened window
-      console.log('Loading payment URL in pre-opened window:', paymentUrl)
-      console.log('Window exists:', !!paymentWindow)
-      console.log('Window closed:', paymentWindow ? paymentWindow.closed : 'N/A')
+      // Direct redirect to payment page (like Amazon/Flipkart)
+      console.log('🚀 Redirecting to payment page:', paymentUrl)
+      console.log('Order Number:', orderNumber)
+      console.log('Amount: ₹', totalAmount, '(LOCKED)')
       
-      let paymentOpened = false
+      // Store order info in sessionStorage so we can clear cart after payment
+      sessionStorage.setItem('pendingOrder', JSON.stringify({
+        orderNumber,
+        totalAmount,
+        timestamp: Date.now()
+      }))
       
-      // Try method 1: Set location in pre-opened window
-      if (paymentWindow && !paymentWindow.closed) {
-        try {
-          console.log('Attempting to set window location...')
-          paymentWindow.location.href = paymentUrl
-          paymentOpened = true
-          console.log('✅ Payment URL set in window!')
-          
-          // Wait a moment to see if it loads
-          setTimeout(() => {
-            if (paymentWindow && !paymentWindow.closed) {
-              console.log('✅ Payment window still open after 1s')
-            }
-          }, 1000)
-        } catch (e) {
-          console.error('❌ Error setting window location:', e)
-          if (paymentWindow) {
-            try {
-              paymentWindow.close()
-            } catch (closeError) {
-              console.warn('Could not close window:', closeError)
-            }
-          }
-          paymentWindow = null
-        }
-      }
+      // Redirect to Razorpay payment page (DIRECT - like Amazon)
+      window.location.href = paymentUrl
       
-      // Try method 2: If window method didn't work, try direct redirect
-      if (!paymentOpened) {
-        console.warn('Pre-opened window not available, redirecting directly')
-        console.log('Redirecting to:', paymentUrl)
-        
-        // Direct redirect to payment page
-        window.location.href = paymentUrl
-        
-        // Don't proceed with cart clearing or modal closing
-        return
-      }
-      
-      // Success - payment link opened!
-      console.log('✅ Payment link opened successfully')
-      alert(
-        `✅ ORDER CREATED!\n\n` +
-        `Order Number: ${orderNumber}\n\n` +
-        `💰 AMOUNT TO PAY: ₹${totalAmount}\n\n` +
-        `🔒 AMOUNT IS LOCKED\n` +
-        `Customer CANNOT change it!\n\n` +
-        `Payment page opened in new tab.\n` +
-        `Complete payment to confirm order.\n\n` +
-        `Thank you for shopping with Aशा!`
-      )
-      
-      // Clear cart and close
-      clearCart()
-      if (onSuccess) {
-        try {
-          onSuccess(orderNumber)
-        } catch (e) {
-          console.error('onSuccess callback error:', e)
-        }
-      }
-      onClose()
-      setIsLoading(false)
+      // Don't clear cart or close modal - page is redirecting
+      // Cart will be cleared when user returns from payment
 
     } catch (error) {
-      // Close the pre-opened payment window if it exists
-      if (paymentWindow && !paymentWindow.closed) {
-        try {
-          paymentWindow.close()
-        } catch (e) {
-          console.warn('Could not close payment window:', e)
-        }
-      }
-      
       console.error('='.repeat(50))
       console.error('CHECKOUT ERROR:')
       console.error('Error message:', error.message)
