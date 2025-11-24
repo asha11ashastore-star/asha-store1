@@ -167,47 +167,48 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       
       // Set the payment URL in the pre-opened window
       console.log('Loading payment URL in pre-opened window:', paymentUrl)
+      console.log('Window exists:', !!paymentWindow)
+      console.log('Window closed:', paymentWindow ? paymentWindow.closed : 'N/A')
       
-      // If window was pre-opened, set its location
+      let paymentOpened = false
+      
+      // Try method 1: Set location in pre-opened window
       if (paymentWindow && !paymentWindow.closed) {
         try {
+          console.log('Attempting to set window location...')
           paymentWindow.location.href = paymentUrl
-          console.log('✅ Payment URL loaded in window successfully!')
+          paymentOpened = true
+          console.log('✅ Payment URL set in window!')
+          
+          // Wait a moment to see if it loads
+          setTimeout(() => {
+            if (paymentWindow && !paymentWindow.closed) {
+              console.log('✅ Payment window still open after 1s')
+            }
+          }, 1000)
         } catch (e) {
-          console.error('Error setting window location:', e)
-          paymentWindow.close()
+          console.error('❌ Error setting window location:', e)
+          if (paymentWindow) {
+            try {
+              paymentWindow.close()
+            } catch (closeError) {
+              console.warn('Could not close window:', closeError)
+            }
+          }
           paymentWindow = null
         }
       }
       
-      // If window wasn't opened or was closed, provide clickable link
-      if (!paymentWindow || paymentWindow.closed) {
-        console.warn('Window not available, showing link instead')
+      // Try method 2: If window method didn't work, try direct redirect
+      if (!paymentOpened) {
+        console.warn('Pre-opened window not available, redirecting directly')
+        console.log('Redirecting to:', paymentUrl)
         
-        const proceed = confirm(
-          `✅ ORDER CREATED!\n\n` +
-          `Order Number: ${orderNumber}\n\n` +
-          `💰 AMOUNT TO PAY: ₹${totalAmount}\n\n` +
-          `🔒 AMOUNT IS LOCKED - Cannot be changed!\n\n` +
-          `⚠️ Popup blocked!\n\n` +
-          `Click OK to open payment page now.`
-        )
+        // Direct redirect to payment page
+        window.location.href = paymentUrl
         
-        if (proceed) {
-          // Redirect to payment page
-          window.location.href = paymentUrl
-          return // Don't clear cart yet
-        } else {
-          // Show link to copy
-          alert(
-            `Please open this link to complete payment:\n\n` +
-            `${paymentUrl}\n\n` +
-            `🔒 Amount: ₹${totalAmount} (LOCKED)\n\n` +
-            `Copy and open in browser.`
-          )
-          setIsLoading(false)
-          return
-        }
+        // Don't proceed with cart clearing or modal closing
+        return
       }
       
       // Success - payment link opened!
