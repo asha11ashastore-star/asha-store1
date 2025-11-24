@@ -15,7 +15,7 @@ import uuid
 
 from app.config import settings, CORS_ORIGINS
 from app.database import check_db_connection
-from app.routers import auth, products, cart, orders, payments, company, products_fixed, products_detail, razorpay_link, guest_orders, products_dashboard, admin_reset
+from app.routers import auth, products, cart, orders, payments, company, products_fixed, products_detail, razorpay_link, guest_orders, products_dashboard, admin_reset, payment_links
 import uvicorn
 
 # Configure logging
@@ -281,6 +281,9 @@ app.include_router(razorpay_link.router, prefix="/api/v1")
 
 # Include guest orders router
 app.include_router(guest_orders.router)
+
+# Include payment links router (for secure, locked-amount payments)
+app.include_router(payment_links.router)
 
 # Serve uploaded files
 import os
