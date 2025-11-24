@@ -72,11 +72,11 @@ export default function Header() {
                 </button>
               </div>
 
-              {/* Center Logo */}
+              {/* Center Logo - Same on Desktop and Mobile */}
               <div className="flex flex-col items-center">
                 <Link href="/" className="text-center">
-                  <h1 className="text-4xl font-elegant font-medium tracking-widest" style={{ color: '#8B2E2E' }}>Aशा</h1>
-                  <p className="text-sm mt-2 font-sans tracking-wide font-normal" style={{ color: '#A89878' }}>Grace Woven by Asha Dhaundiyal</p>
+                  <h1 className="text-3xl md:text-4xl font-elegant font-medium tracking-widest" style={{ color: '#8B2E2E' }}>Aशा</h1>
+                  <p className="text-xs md:text-sm mt-1 md:mt-2 font-sans tracking-wide font-normal" style={{ color: '#A89878' }}>Grace Woven by Asha Dhaundiyal</p>
                 </Link>
               </div>
 

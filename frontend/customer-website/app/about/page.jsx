@@ -224,16 +224,16 @@ export default function About() {
             Discover our curated collection of authentic handloom sarees, kurtis, and traditional wear. 
             Each piece tells a story of heritage, craftsmanship, and timeless elegance.
           </p>
-          <div className="space-x-4">
+          <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-center justify-center">
             <Link 
               href="/collections" 
-              className="inline-block bg-maroon text-white px-8 py-3 rounded-lg font-medium hover:bg-dark-maroon transition-colors"
+              className="inline-block bg-maroon text-white px-10 py-4 rounded-lg font-medium hover:bg-dark-maroon transition-colors text-center min-w-[250px]"
             >
               Shop Our Collection
             </Link>
             <Link 
               href="/contact" 
-              className="inline-block bg-transparent border-2 border-maroon text-maroon px-8 py-3 rounded-lg font-medium hover:bg-maroon hover:text-white transition-colors"
+              className="inline-block bg-transparent border-2 border-maroon text-maroon px-10 py-4 rounded-lg font-medium hover:bg-maroon hover:text-white transition-colors text-center min-w-[250px]"
             >
               Contact Us
             </Link>
