@@ -198,6 +198,84 @@ async def get_products(
             detail="Error fetching products"
         )
 
+# IMPORTANT: Specific routes must come BEFORE generic /{product_id} route
+@router.get("/categories/", response_model=List[str])
+async def get_categories():
+    """Get all available product categories"""
+    return [category.value for category in Category]
+
+@router.get("/seller/{seller_id}", response_model=PaginatedResponse)
+async def get_seller_products(
+    seller_id: int,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    status_filter: Optional[ProductStatus] = None,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_user)
+):
+    """Get products by seller ID"""
+    try:
+        # Build base query
+        query = db.query(Product).options(
+            joinedload(Product.images),
+            joinedload(Product.seller)
+        ).filter(Product.seller_id == seller_id)
+        
+        # Apply status filter if provided
+        if status_filter:
+            query = query.filter(Product.status == status_filter)
+        
+        # Get total count
+        total = query.count()
+        
+        # Apply pagination
+        offset = (page - 1) * limit
+        products = query.order_by(desc(Product.created_at)).offset(offset).limit(limit).all()
+        
+        # Transform to list response format
+        items = []
+        for product in products:
+            primary_image = None
+            for img in product.images:
+                if img.is_primary:
+                    primary_image = img.image_url
+                    break
+            if not primary_image and product.images:
+                primary_image = product.images[0].image_url
+            
+            items.append(ProductListResponse(
+                id=product.id,
+                seller_id=product.seller_id,
+                name=product.name,
+                category=str(product.category) if product.category else "silk_saree",
+                price=product.price,
+                discounted_price=product.discounted_price,
+                stock_quantity=product.stock_quantity,
+                status=str(product.status) if product.status else "active",
+                primary_image=primary_image,
+                seller_name=f"{product.seller.first_name} {product.seller.last_name}" if product.seller else "Asha Store",
+                created_at=product.created_at
+            ))
+        
+        pages = (total + limit - 1) // limit
+        
+        return PaginatedResponse(
+            items=items,
+            total=total,
+            page=page,
+            limit=limit,
+            pages=pages,
+            has_next=page < pages,
+            has_prev=page > 1
+        )
+        
+    except Exception as e:
+        logger.error(f"Error fetching seller products: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching seller products"
+        )
+
 @router.get("/{product_id}")
 async def get_product(
     product_id: int,
@@ -575,84 +653,4 @@ async def delete_product_image(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Image deletion failed"
-        )
-
-@router.get("/categories/", response_model=List[str])
-async def get_categories():
-    """Get all available product categories"""
-    return [category.value for category in Category]
-
-@router.get("/seller/{seller_id}", response_model=PaginatedResponse)
-async def get_seller_products(
-    seller_id: int,
-    page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
-    status_filter: Optional[ProductStatus] = None,
-    db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_optional_user)
-):
-    """Get products by seller ID"""
-    try:
-        query = db.query(Product).options(
-            joinedload(Product.images),
-            joinedload(Product.seller)
-        ).filter(Product.seller_id == seller_id)
-        
-        # If not the seller or admin, only show active products
-        if not current_user or (
-            current_user.id != seller_id and current_user.role != UserRole.ADMIN
-        ):
-            query = query.filter(Product.status == ProductStatus.ACTIVE)
-        elif status_filter:
-            query = query.filter(Product.status == status_filter)
-        
-        # Get total count
-        total = query.count()
-        
-        # Apply pagination
-        offset = (page - 1) * limit
-        products = query.order_by(desc(Product.created_at)).offset(offset).limit(limit).all()
-        
-        # Transform to list response format
-        items = []
-        for product in products:
-            primary_image = None
-            for img in product.images:
-                if img.is_primary:
-                    primary_image = img.image_url
-                    break
-            if not primary_image and product.images:
-                primary_image = product.images[0].image_url
-            
-            items.append(ProductListResponse(
-                id=product.id,
-                seller_id=product.seller_id,
-                name=product.name,
-                category=str(product.category) if product.category else "silk_saree",
-                price=product.price,
-                discounted_price=product.discounted_price,
-                stock_quantity=product.stock_quantity,
-                status=str(product.status) if product.status else "active",
-                primary_image=primary_image,
-                seller_name=f"{product.seller.first_name} {product.seller.last_name}" if product.seller else "Asha Store",
-                created_at=product.created_at
-            ))
-        
-        pages = (total + limit - 1) // limit
-        
-        return PaginatedResponse(
-            items=items,
-            total=total,
-            page=page,
-            limit=limit,
-            pages=pages,
-            has_next=page < pages,
-            has_prev=page > 1
-        )
-        
-    except Exception as e:
-        logger.error(f"Error fetching seller products: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error fetching seller products"
         )
