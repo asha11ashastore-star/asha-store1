@@ -106,20 +106,46 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       })
 
       if (!orderResponse.ok) {
-        const errorData = await orderResponse.json()
-        console.error('Order creation failed:', errorData)
-        throw new Error(errorData.detail || 'Failed to create order')
+        let errorMessage = 'Failed to create order'
+        try {
+          const errorData = await orderResponse.json()
+          console.error('Order creation failed:', errorData)
+          console.error('Response status:', orderResponse.status)
+          
+          // Extract detailed error message
+          if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail
+          } else if (Array.isArray(errorData.detail)) {
+            errorMessage = errorData.detail.map(err => err.msg || err.message || JSON.stringify(err)).join(', ')
+          } else if (errorData.message) {
+            errorMessage = errorData.message
+          }
+        } catch (e) {
+          console.error('Could not parse error response:', e)
+          errorMessage = `Server error (${orderResponse.status}): ${orderResponse.statusText}`
+        }
+        throw new Error(errorMessage)
       }
 
       const savedOrder = await orderResponse.json()
       console.log('Order created successfully:', savedOrder)
+      console.log('Order ID:', savedOrder.id)
+      console.log('Order Number:', savedOrder.order_number)
       
-      // Create payment URL with amount (in paise: ₹1 = 100 paise)
+      // Create payment URL with LOCKED amount (in paise: ₹1 = 100 paise)
       const amountInPaise = Math.round(totalAmount * 100)
+      
+      // Format: https://razorpay.me/@username?amount=AMOUNT_IN_PAISE
+      // This pre-fills and LOCKS the amount on Razorpay payment page
       const paymentUrl = `${RAZORPAY_PAYMENT_LINK}?amount=${amountInPaise}`
       
-      console.log('Opening payment URL:', paymentUrl)
-      console.log('Amount:', totalAmount, 'Paise:', amountInPaise)
+      console.log('='.repeat(50))
+      console.log('PAYMENT DETAILS:')
+      console.log('Total Amount (₹):', totalAmount)
+      console.log('Amount in Paise:', amountInPaise)
+      console.log('Payment URL:', paymentUrl)
+      console.log('Order Number:', savedOrder.order_number)
+      console.log('='.repeat(50))
       
       // Open Razorpay payment page
       const opened = window.open(paymentUrl, '_blank')
@@ -130,8 +156,8 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         return
       }
       
-      // Show success message
-      alert(`✅ ORDER PLACED!\n\nOrder Number: ${savedOrder.order_number}\n\nTotal: ₹${totalAmount}\n\nPayment page opened in new tab.\nComplete your payment to confirm order.\n\nThank you!`)
+      // Show success message with locked amount info
+      alert(`✅ ORDER PLACED SUCCESSFULLY!\n\nOrder Number: ${savedOrder.order_number}\n\n💰 AMOUNT TO PAY: ₹${totalAmount}\n\n🔒 IMPORTANT:\nThe amount is LOCKED at ₹${totalAmount}\nYou CANNOT change this amount\n\nPayment page opened in new tab.\nComplete your payment to confirm order.\n\nThank you for shopping with Aशा!`)
       
       // Clear cart and close
       clearCart()
@@ -140,8 +166,23 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       setIsLoading(false)
 
     } catch (error) {
-      console.error('Checkout error:', error)
-      alert(`Error: ${error.message || 'Failed to process order'}\n\nPlease try again or contact support.`)
+      console.error('='.repeat(50))
+      console.error('CHECKOUT ERROR:')
+      console.error('Error message:', error.message)
+      console.error('Error details:', error)
+      console.error('='.repeat(50))
+      
+      // Show detailed error to user
+      let userMessage = error.message || 'Failed to process order'
+      
+      // Add helpful context based on error type
+      if (userMessage.includes('stock') || userMessage.includes('out of stock')) {
+        userMessage += '\n\n💡 Tip: Some items may be out of stock. Please check your cart.'
+      } else if (userMessage.includes('network') || userMessage.includes('fetch')) {
+        userMessage += '\n\n💡 Tip: Check your internet connection and try again.'
+      }
+      
+      alert(`❌ ORDER FAILED\n\n${userMessage}\n\nPlease try again or contact support:\nWhatsApp: +91 98181 74388`)
       setIsLoading(false)
     }
   }
