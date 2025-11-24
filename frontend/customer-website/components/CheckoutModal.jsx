@@ -57,7 +57,9 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
   }
 
   const handleCheckout = async () => {
+    // Validate form first
     if (!validateForm()) {
+      alert('Please fill in all required fields correctly.')
       return
     }
 
@@ -65,6 +67,13 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
 
     try {
       const totalAmount = parseFloat(getTotal())
+      
+      // Verify amount
+      if (!totalAmount || totalAmount <= 0) {
+        throw new Error('Invalid order amount. Please check your cart.')
+      }
+      
+      console.log('Creating order with amount:', totalAmount)
       
       // Create order in database with formatted address
       const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} - ${customerInfo.pinCode}`
@@ -85,6 +94,8 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         notes: 'Payment via Razorpay.me'
       }
 
+      console.log('Sending order data:', orderData)
+
       // Save order to backend
       const orderResponse = await fetch(`${API_BASE_URL}/api/v1/guest-orders`, {
         method: 'POST',
@@ -96,126 +107,41 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
 
       if (!orderResponse.ok) {
         const errorData = await orderResponse.json()
+        console.error('Order creation failed:', errorData)
         throw new Error(errorData.detail || 'Failed to create order')
       }
 
       const savedOrder = await orderResponse.json()
+      console.log('Order created successfully:', savedOrder)
       
-      // Create payment URL with amount LOCKED (customer CANNOT edit)
+      // Create payment URL with amount (in paise: ₹1 = 100 paise)
       const amountInPaise = Math.round(totalAmount * 100)
-      
-      // Razorpay.me URL format: amount in paise (₹1 = 100 paise)
-      // Example: ₹2,500 = 250000 paise
       const paymentUrl = `${RAZORPAY_PAYMENT_LINK}?amount=${amountInPaise}`
       
-      // Debug: Log the URL to verify amount
-      console.log('Payment URL:', paymentUrl)
-      console.log('Total Amount:', totalAmount)
-      console.log('Amount in Paise:', amountInPaise)
+      console.log('Opening payment URL:', paymentUrl)
+      console.log('Amount:', totalAmount, 'Paise:', amountInPaise)
       
-      // Verify amount is not zero
-      if (amountInPaise <= 0) {
-        throw new Error('Invalid order amount. Please check your cart.')
+      // Open Razorpay payment page
+      const opened = window.open(paymentUrl, '_blank')
+      
+      if (!opened) {
+        alert('Payment page blocked! Please allow popups and try again.')
+        setIsLoading(false)
+        return
       }
       
-      // Show payment instructions
-      const productNames = items.map(item => `${item.name} (₹${item.price} x ${item.quantity})`).join('\n')
+      // Show success message
+      alert(`✅ ORDER PLACED!\n\nOrder Number: ${savedOrder.order_number}\n\nTotal: ₹${totalAmount}\n\nPayment page opened in new tab.\nComplete your payment to confirm order.\n\nThank you!`)
       
-      const confirmed = confirm(`
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ORDER CREATED - PROCEED TO PAYMENT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Order Number: ${savedOrder.order_number}
-
-Order Summary:
-${productNames}
-
-Total Amount to Pay: ₹${totalAmount}
-
-Customer: ${customerInfo.name}
-Email: ${customerInfo.email}
-Phone: ${customerInfo.phone}
-
-Delivery Address:
-${customerInfo.address}
-${customerInfo.city}, ${customerInfo.state} - ${customerInfo.pinCode}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-PAYMENT INSTRUCTIONS:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-✅ AMOUNT IS LOCKED & PRE-FILLED
-You will pay: ₹${totalAmount} (CANNOT be changed)
-
-1. Click OK to open Razorpay payment page
-2. Amount ₹${totalAmount} will be AUTOMATICALLY set
-3. Choose your payment method:
-   • UPI (Google Pay, PhonePe, Paytm)
-   • Credit/Debit Cards
-   • Net Banking
-   • Wallets
-
-4. Complete the payment
-
-⚠️ IMPORTANT:
-Amount is LOCKED at ₹${totalAmount}
-You cannot edit or change this amount
-Order Number: ${savedOrder.order_number}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Click OK to open payment page
-The amount will be automatically filled!
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      `.trim())
-
-      if (confirmed) {
-        // Open Razorpay payment page in new tab with LOCKED amount
-        console.log('Opening Razorpay with URL:', paymentUrl)
-        const opened = window.open(paymentUrl, '_blank')
-        
-        if (!opened) {
-          alert('Please allow popups for payment page to open!')
-          return
-        }
-        
-        // Show success message
-        alert(`
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ORDER PLACED!
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Order Number: ${savedOrder.order_number}
-
-✅ Razorpay payment page opened
-
-Amount to Pay: ₹${totalAmount}
-(This amount is LOCKED and pre-filled)
-
-Complete your payment in the new tab.
-The exact amount ₹${totalAmount} is already set.
-You cannot change this amount.
-
-After payment, we'll process your order!
-
-Thank you for shopping with Aशा!
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-        `.trim())
-        
-        // Clear cart
-        clearCart()
-        
-        if (onSuccess) onSuccess(savedOrder.order_number)
-        onClose()
-      }
-      
+      // Clear cart and close
+      clearCart()
+      if (onSuccess) onSuccess(savedOrder.order_number)
+      onClose()
       setIsLoading(false)
 
     } catch (error) {
       console.error('Checkout error:', error)
-      alert(error.message || 'Failed to process checkout. Please try again.')
+      alert(`Error: ${error.message || 'Failed to process order'}\n\nPlease try again or contact support.`)
       setIsLoading(false)
     }
   }
