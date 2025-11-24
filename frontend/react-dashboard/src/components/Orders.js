@@ -37,7 +37,8 @@ const Orders = () => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/orders`, {
+      // Fetch GUEST orders (from customer website checkout)
+      const response = await fetch(`${API_BASE_URL}/api/v1/guest-orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -46,8 +47,23 @@ const Orders = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Orders response:', data);
-        setOrders(data.items || data || []);
+        console.log('Guest Orders response:', data);
+        
+        // Handle both array and object response
+        let ordersArray = [];
+        if (Array.isArray(data)) {
+          ordersArray = data;
+        } else if (data.items && Array.isArray(data.items)) {
+          ordersArray = data.items;
+        } else if (data.orders && Array.isArray(data.orders)) {
+          ordersArray = data.orders;
+        }
+        
+        // Sort by created_at descending (newest first)
+        ordersArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        console.log('Processed orders:', ordersArray);
+        setOrders(ordersArray);
       } else {
         const errorText = await response.text();
         console.error('Orders error:', response.status, errorText);
@@ -65,19 +81,25 @@ const Orders = () => {
     try {
       const token = localStorage.getItem('authToken');
       
-      const response = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/status`, {
+      // Update guest order status
+      const response = await fetch(`${API_BASE_URL}/api/v1/guest-orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: orderStatus })
+        body: JSON.stringify({ 
+          order_status: orderStatus,
+          payment_status: paymentStatus
+        })
       });
 
       if (response.ok) {
         toast.success('Order status updated successfully');
         fetchOrders(); // Refresh orders
       } else {
+        const errorText = await response.text();
+        console.error('Status update error:', response.status, errorText);
         throw new Error('Failed to update order status');
       }
     } catch (error) {
