@@ -77,10 +77,18 @@ class PaymentVerification(BaseModel):
 
 # Create tables if they don't exist
 def create_guest_order_tables(db: Session):
-    """Create guest order tables"""
-    db.execute(text("""
+    """Create guest order tables - PostgreSQL compatible"""
+    # Check database type
+    from app.config import settings
+    is_postgres = settings.database_url.startswith("postgresql")
+    
+    # Use appropriate syntax for auto-increment
+    id_column = "SERIAL PRIMARY KEY" if is_postgres else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    timestamp_default = "NOW()" if is_postgres else "CURRENT_TIMESTAMP"
+    
+    db.execute(text(f"""
         CREATE TABLE IF NOT EXISTS guest_orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {id_column},
             order_number TEXT UNIQUE NOT NULL,
             customer_name TEXT NOT NULL,
             customer_email TEXT NOT NULL,
@@ -91,21 +99,21 @@ def create_guest_order_tables(db: Session):
             payment_status TEXT DEFAULT 'pending',
             order_status TEXT DEFAULT 'pending',
             notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT {timestamp_default},
+            updated_at TIMESTAMP DEFAULT {timestamp_default}
         )
     """))
     
-    db.execute(text("""
+    db.execute(text(f"""
         CREATE TABLE IF NOT EXISTS guest_order_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {id_column},
             order_id INTEGER NOT NULL,
             product_id INTEGER NOT NULL,
             product_name TEXT NOT NULL,
             quantity INTEGER NOT NULL,
             price REAL NOT NULL,
             total REAL NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT {timestamp_default},
             FOREIGN KEY (order_id) REFERENCES guest_orders (id)
         )
     """))
