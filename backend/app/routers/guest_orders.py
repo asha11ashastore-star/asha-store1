@@ -636,3 +636,104 @@ async def verify_razorpay_payment(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Payment verification failed: {str(e)}"
         )
+
+
+# New endpoint to mark order as paid (called from success page)
+class MarkPaidRequest(BaseModel):
+    payment_id: str
+    payment_link_id: Optional[str] = None
+    payment_link_status: Optional[str] = None
+
+@router.post("/{order_number}/mark-paid")
+async def mark_order_as_paid(
+    order_number: str,
+    payment_data: MarkPaidRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Mark an order as paid when customer lands on success page
+    This ensures immediate status update without waiting for webhooks
+    """
+    try:
+        logger.info(f"Marking order {order_number} as PAID")
+        
+        # Find order
+        order = db.execute(text("""
+            SELECT id, payment_status, order_status FROM guest_orders 
+            WHERE order_number = :order_number
+        """), {"order_number": order_number}).fetchone()
+        
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Order {order_number} not found"
+            )
+        
+        order_id = order[0]
+        current_payment_status = order[1]
+        
+        # If already paid, don't decrement stock again
+        if current_payment_status == 'completed':
+            logger.info(f"Order {order_number} already marked as paid")
+            return {
+                "success": True,
+                "message": "Order already marked as paid",
+                "order_number": order_number
+            }
+        
+        # Get order items
+        items = db.execute(text("""
+            SELECT product_id, quantity FROM guest_order_items 
+            WHERE order_id = :order_id
+        """), {"order_id": order_id}).fetchall()
+        
+        # Decrement stock for each item
+        for item in items:
+            product_id = item[0]
+            quantity = item[1]
+            
+            product = db.query(Product).filter(Product.id == product_id).first()
+            if product:
+                if product.stock_quantity >= quantity:
+                    product.stock_quantity -= quantity
+                    logger.info(f"Stock decremented for {product.name}: -{quantity} (now {product.stock_quantity})")
+                else:
+                    logger.warning(f"Insufficient stock for {product.name}: need {quantity}, have {product.stock_quantity}")
+        
+        # Update order status to completed
+        notes = f"Payment ID: {payment_data.payment_id}"
+        if payment_data.payment_link_id:
+            notes += f" | Link ID: {payment_data.payment_link_id}"
+        
+        db.execute(text("""
+            UPDATE guest_orders 
+            SET payment_status = 'completed',
+                order_status = 'processing',
+                notes = :notes,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE order_number = :order_number
+        """), {
+            "notes": notes,
+            "order_number": order_number
+        })
+        
+        db.commit()
+        
+        logger.info(f"✅ Order {order_number} marked as PAID successfully")
+        
+        return {
+            "success": True,
+            "message": "Order marked as paid successfully",
+            "order_number": order_number,
+            "payment_id": payment_data.payment_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to mark order as paid: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to mark order as paid: {str(e)}"
+        )

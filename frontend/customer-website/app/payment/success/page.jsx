@@ -11,57 +11,90 @@ export default function PaymentSuccessPage() {
   const [orderDetails, setOrderDetails] = useState(null)
 
   useEffect(() => {
-    // Get order details from URL params (from Razorpay callback)
-    const orderNumber = searchParams.get('order') || searchParams.get('order_id')
-    const paymentId = searchParams.get('payment_id') || searchParams.get('razorpay_payment_id')
-    const paymentLinkId = searchParams.get('razorpay_payment_link_id')
-    const paymentLinkStatus = searchParams.get('razorpay_payment_link_status')
-    
-    console.log('Payment Success Page - URL Params:', {
-      orderNumber,
-      paymentId,
-      paymentLinkId,
-      paymentLinkStatus,
-      allParams: Object.fromEntries(searchParams.entries())
-    })
-    
-    // Clear cart after successful payment
-    if (orderNumber) {
-      try {
-        localStorage.removeItem('cart')
-        // Dispatch custom event to update cart count
-        window.dispatchEvent(new Event('cartUpdated'))
-        console.log('Cart cleared after successful payment')
-      } catch (e) {
-        console.warn('Could not clear cart:', e)
-      }
-    } else {
-      console.warn('No order number in URL params - user may have navigated here directly')
-    }
-    
-    if (orderNumber) {
-      setOrderDetails({
-        orderId: orderNumber,
-        paymentId: paymentId || 'Processing...',
-        timestamp: new Date().toLocaleString()
+    const updateOrderStatus = async () => {
+      // Get order details from URL params (from Razorpay callback)
+      const orderNumber = searchParams.get('order') || searchParams.get('order_id')
+      const paymentId = searchParams.get('payment_id') || searchParams.get('razorpay_payment_id')
+      const paymentLinkId = searchParams.get('razorpay_payment_link_id')
+      const paymentLinkStatus = searchParams.get('razorpay_payment_link_status')
+      
+      console.log('Payment Success Page - URL Params:', {
+        orderNumber,
+        paymentId,
+        paymentLinkId,
+        paymentLinkStatus,
+        allParams: Object.fromEntries(searchParams.entries())
       })
-    } else {
-      // No order number - check sessionStorage for pending order
-      try {
-        const pendingOrder = sessionStorage.getItem('pendingOrder')
-        if (pendingOrder) {
-          const order = JSON.parse(pendingOrder)
-          setOrderDetails({
-            orderId: order.orderNumber,
-            paymentId: 'Payment Completed',
-            timestamp: new Date(order.timestamp).toLocaleString()
+      
+      // Update order status to PAID immediately
+      if (orderNumber) {
+        try {
+          console.log('🔄 Updating order status to PAID for:', orderNumber)
+          
+          const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'
+          const response = await fetch(`${API_BASE_URL}/api/v1/guest-orders/${orderNumber}/mark-paid`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              payment_id: paymentId || paymentLinkId || 'razorpay_payment',
+              payment_link_id: paymentLinkId,
+              payment_link_status: paymentLinkStatus || 'paid'
+            })
           })
-          sessionStorage.removeItem('pendingOrder')
+          
+          if (response.ok) {
+            console.log('✅ Order marked as PAID successfully!')
+          } else {
+            console.warn('⚠️ Failed to update order status:', await response.text())
+          }
+        } catch (error) {
+          console.warn('⚠️ Error updating order status:', error)
+          // Continue anyway - order was created, just status update failed
         }
-      } catch (e) {
-        console.warn('Could not load pending order:', e)
+      }
+      
+      // Clear cart after successful payment
+      if (orderNumber) {
+        try {
+          localStorage.removeItem('cart')
+          // Dispatch custom event to update cart count
+          window.dispatchEvent(new Event('cartUpdated'))
+          console.log('Cart cleared after successful payment')
+        } catch (e) {
+          console.warn('Could not clear cart:', e)
+        }
+      } else {
+        console.warn('No order number in URL params - user may have navigated here directly')
+      }
+      
+      if (orderNumber) {
+        setOrderDetails({
+          orderId: orderNumber,
+          paymentId: paymentId || paymentLinkId || 'Processing...',
+          timestamp: new Date().toLocaleString()
+        })
+      } else {
+        // No order number - check sessionStorage for pending order
+        try {
+          const pendingOrder = sessionStorage.getItem('pendingOrder')
+          if (pendingOrder) {
+            const order = JSON.parse(pendingOrder)
+            setOrderDetails({
+              orderId: order.orderNumber,
+              paymentId: 'Payment Completed',
+              timestamp: new Date(order.timestamp).toLocaleString()
+            })
+            sessionStorage.removeItem('pendingOrder')
+          }
+        } catch (e) {
+          console.warn('Could not load pending order:', e)
+        }
       }
     }
+    
+    updateOrderStatus()
   }, [searchParams])
 
   return (
