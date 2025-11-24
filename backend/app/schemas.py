@@ -34,6 +34,16 @@ class UserUpdate(BaseSchema):
     phone: Optional[str] = Field(None, max_length=20)
     avatar_url: Optional[str] = None
 
+class PasswordChange(BaseSchema):
+    current_password: str
+    new_password: str = Field(..., min_length=8, max_length=100)
+    
+    @validator('new_password')
+    def validate_new_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('New password must be at least 8 characters long')
+        return v
+
 class UserResponse(UserBase):
     id: int
     is_active: bool

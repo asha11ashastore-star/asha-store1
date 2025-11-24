@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas import (
     UserCreate, UserLogin, UserResponse, TokenResponse, 
-    RefreshTokenRequest, UserUpdate
+    RefreshTokenRequest, UserUpdate, PasswordChange
 )
 from app.models import User, UserRole
 from app.auth import auth_manager, get_current_user
@@ -209,6 +209,48 @@ async def update_current_user(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="User update failed"
+        )
+
+@router.post("/change-password")
+async def change_password(
+    password_data: PasswordChange,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change user password"""
+    try:
+        # Verify current password
+        if not auth_manager.verify_password(password_data.current_password, current_user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Current password is incorrect"
+            )
+        
+        # Check if new password is same as current
+        if password_data.current_password == password_data.new_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New password must be different from current password"
+            )
+        
+        # Truncate password if too long for bcrypt
+        password_to_hash = password_data.new_password[:72] if len(password_data.new_password) > 72 else password_data.new_password
+        
+        # Update password
+        current_user.hashed_password = auth_manager.get_password_hash(password_to_hash)
+        db.commit()
+        
+        logger.info(f"Password changed successfully for user: {current_user.email}")
+        return {"message": "Password changed successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Password change failed: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password change failed"
         )
 
 @router.post("/verify-email")

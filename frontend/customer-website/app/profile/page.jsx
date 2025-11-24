@@ -4,17 +4,32 @@ import { useRouter } from 'next/navigation'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import { useAuth } from '../../contexts/AuthContext'
+import apiService from '../../services/api'
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, isLoading: authLoading } = useAuth()
+  const { user, isLoading: authLoading, refreshUser } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     username: '',
     email: '',
     phone: ''
+  })
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  })
+  const [preferences, setPreferences] = useState({
+    email_notifications: true,
+    sms_notifications: false,
+    newsletter: true
   })
 
   useEffect(() => {
@@ -37,9 +52,90 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: Implement profile update
-    alert('Profile update feature coming soon!')
-    setIsEditing(false)
+    setLoading(true)
+    setMessage({ type: '', text: '' })
+    
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await fetch(`${apiService.baseURL}/api/v1/auth/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone: formData.phone
+        })
+      })
+      
+      if (response.ok) {
+        await refreshUser()
+        setMessage({ type: 'success', text: 'Profile updated successfully!' })
+        setIsEditing(false)
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+      } else {
+        const error = await response.json()
+        setMessage({ type: 'error', text: error.detail || 'Failed to update profile' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault()
+    
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      setMessage({ type: 'error', text: 'New passwords do not match!' })
+      return
+    }
+    
+    if (passwordData.new_password.length < 8) {
+      setMessage({ type: 'error', text: 'Password must be at least 8 characters long' })
+      return
+    }
+    
+    setLoading(true)
+    setMessage({ type: '', text: '' })
+    
+    try {
+      const token = localStorage.getItem('access_token')
+      const response = await fetch(`${apiService.baseURL}/api/v1/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          current_password: passwordData.current_password,
+          new_password: passwordData.new_password
+        })
+      })
+      
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Password changed successfully!' })
+        setPasswordData({ current_password: '', new_password: '', confirm_password: '' })
+        setShowPasswordModal(false)
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000)
+      } else {
+        const error = await response.json()
+        setMessage({ type: 'error', text: error.detail || 'Failed to change password' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to change password. Please try again.' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePreferencesSave = () => {
+    setMessage({ type: 'success', text: 'Preferences saved successfully!' })
+    setShowPreferencesModal(false)
+    setTimeout(() => setMessage({ type: '', text: '' }), 3000)
   }
 
   if (authLoading) {
@@ -239,14 +335,23 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Success/Error Message */}
+        {message.text && (
+          <div className={`mt-6 p-4 rounded-lg ${
+            message.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'
+          }`}>
+            {message.text}
+          </div>
+        )}
+
         {/* Additional Sections */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Security Card */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Security</h3>
             <button 
-              onClick={() => alert('Change password feature coming soon!')}
-              className="text-primary-brown hover:underline text-sm"
+              onClick={() => setShowPasswordModal(true)}
+              className="text-primary-brown hover:underline text-sm font-medium"
             >
               Change Password →
             </button>
@@ -256,13 +361,140 @@ export default function ProfilePage() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Preferences</h3>
             <button 
-              onClick={() => alert('Email preferences feature coming soon!')}
-              className="text-primary-brown hover:underline text-sm"
+              onClick={() => setShowPreferencesModal(true)}
+              className="text-primary-brown hover:underline text-sm font-medium"
             >
               Email Preferences →
             </button>
           </div>
         </div>
+
+        {/* Password Change Modal */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full p-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Change Password</h3>
+              <form onSubmit={handlePasswordChange}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.current_password}
+                      onChange={(e) => setPasswordData({...passwordData, current_password: e.target.value})}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-beige-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.new_password}
+                      onChange={(e) => setPasswordData({...passwordData, new_password: e.target.value})}
+                      required
+                      minLength={8}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-beige-600"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.confirm_password}
+                      onChange={(e) => setPasswordData({...passwordData, confirm_password: e.target.value})}
+                      required
+                      minLength={8}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-beige-600"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPasswordModal(false)
+                      setPasswordData({ current_password: '', new_password: '', confirm_password: '' })
+                      setMessage({ type: '', text: '' })
+                    }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-4 py-2 bg-primary-brown text-white rounded-lg hover:bg-dark-brown disabled:opacity-50"
+                  >
+                    {loading ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Preferences Modal */}
+        {showPreferencesModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full p-6">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Email Preferences</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-800">Email Notifications</p>
+                    <p className="text-sm text-gray-600">Receive order updates via email</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences.email_notifications}
+                    onChange={(e) => setPreferences({...preferences, email_notifications: e.target.checked})}
+                    className="w-5 h-5 text-primary-brown"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-800">SMS Notifications</p>
+                    <p className="text-sm text-gray-600">Receive SMS updates</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences.sms_notifications}
+                    onChange={(e) => setPreferences({...preferences, sms_notifications: e.target.checked})}
+                    className="w-5 h-5 text-primary-brown"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-800">Newsletter</p>
+                    <p className="text-sm text-gray-600">Get latest collections & offers</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferences.newsletter}
+                    onChange={(e) => setPreferences({...preferences, newsletter: e.target.checked})}
+                    className="w-5 h-5 text-primary-brown"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-4 mt-6">
+                <button
+                  onClick={() => setShowPreferencesModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePreferencesSave}
+                  className="px-4 py-2 bg-primary-brown text-white rounded-lg hover:bg-dark-brown"
+                >
+                  Save Preferences
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <Footer />
