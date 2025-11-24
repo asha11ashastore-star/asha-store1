@@ -66,12 +66,23 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
     }
 
     setIsLoading(true)
+    
+    // Open window immediately (synchronously) to prevent popup blocker
+    // We'll set the URL later after API responds
+    let paymentWindow = null
+    try {
+      paymentWindow = window.open('about:blank', '_blank')
+      console.log('Payment window opened (will load URL after API response)')
+    } catch (e) {
+      console.warn('Could not pre-open window:', e)
+    }
 
     try {
       const totalAmount = parseFloat(getTotal())
       
       // Verify amount
       if (!totalAmount || totalAmount <= 0) {
+        if (paymentWindow) paymentWindow.close()
         throw new Error('Invalid order amount. Please check your cart.')
       }
       
@@ -154,20 +165,24 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       console.log('🔒 Amount is LOCKED in Razorpay - Customer CANNOT change it!')
       console.log('='.repeat(50))
       
-      // Open the LOCKED payment link
-      console.log('Opening LOCKED payment link:', paymentUrl)
+      // Set the payment URL in the pre-opened window
+      console.log('Loading payment URL in pre-opened window:', paymentUrl)
       
-      // Try opening payment link in new window
-      let opened = null
-      try {
-        opened = window.open(paymentUrl, '_blank')
-      } catch (e) {
-        console.error('window.open blocked:', e)
+      // If window was pre-opened, set its location
+      if (paymentWindow && !paymentWindow.closed) {
+        try {
+          paymentWindow.location.href = paymentUrl
+          console.log('✅ Payment URL loaded in window successfully!')
+        } catch (e) {
+          console.error('Error setting window location:', e)
+          paymentWindow.close()
+          paymentWindow = null
+        }
       }
       
-      // If blocked, provide clickable link
-      if (!opened || opened.closed || typeof opened.closed == 'undefined') {
-        console.warn('Popup blocked, showing link instead')
+      // If window wasn't opened or was closed, provide clickable link
+      if (!paymentWindow || paymentWindow.closed) {
+        console.warn('Window not available, showing link instead')
         
         const proceed = confirm(
           `✅ ORDER CREATED!\n\n` +
@@ -221,6 +236,15 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       setIsLoading(false)
 
     } catch (error) {
+      // Close the pre-opened payment window if it exists
+      if (paymentWindow && !paymentWindow.closed) {
+        try {
+          paymentWindow.close()
+        } catch (e) {
+          console.warn('Could not close payment window:', e)
+        }
+      }
+      
       console.error('='.repeat(50))
       console.error('CHECKOUT ERROR:')
       console.error('Error message:', error.message)
