@@ -7,13 +7,28 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Create database engine
-engine = create_engine(
-    settings.database_url,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    echo=settings.debug,
-    connect_args={"check_same_thread": False}  # Required for SQLite threading
-)
+# Determine if we're using SQLite or PostgreSQL
+is_sqlite = settings.database_url.startswith("sqlite")
+
+# Configure engine based on database type
+if is_sqlite:
+    engine = create_engine(
+        settings.database_url,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        echo=settings.debug,
+        connect_args={"check_same_thread": False}  # Required for SQLite threading
+    )
+else:
+    # PostgreSQL configuration
+    engine = create_engine(
+        settings.database_url,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        pool_size=10,
+        max_overflow=20,
+        echo=settings.debug
+    )
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
