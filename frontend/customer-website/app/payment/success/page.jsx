@@ -15,6 +15,15 @@ export default function PaymentSuccessPage() {
     const orderNumber = searchParams.get('order') || searchParams.get('order_id')
     const paymentId = searchParams.get('payment_id') || searchParams.get('razorpay_payment_id')
     const paymentLinkId = searchParams.get('razorpay_payment_link_id')
+    const paymentLinkStatus = searchParams.get('razorpay_payment_link_status')
+    
+    console.log('Payment Success Page - URL Params:', {
+      orderNumber,
+      paymentId,
+      paymentLinkId,
+      paymentLinkStatus,
+      allParams: Object.fromEntries(searchParams.entries())
+    })
     
     // Clear cart after successful payment
     if (orderNumber) {
@@ -22,9 +31,12 @@ export default function PaymentSuccessPage() {
         localStorage.removeItem('cart')
         // Dispatch custom event to update cart count
         window.dispatchEvent(new Event('cartUpdated'))
+        console.log('Cart cleared after successful payment')
       } catch (e) {
         console.warn('Could not clear cart:', e)
       }
+    } else {
+      console.warn('No order number in URL params - user may have navigated here directly')
     }
     
     if (orderNumber) {
@@ -33,6 +45,22 @@ export default function PaymentSuccessPage() {
         paymentId: paymentId || 'Processing...',
         timestamp: new Date().toLocaleString()
       })
+    } else {
+      // No order number - check sessionStorage for pending order
+      try {
+        const pendingOrder = sessionStorage.getItem('pendingOrder')
+        if (pendingOrder) {
+          const order = JSON.parse(pendingOrder)
+          setOrderDetails({
+            orderId: order.orderNumber,
+            paymentId: 'Payment Completed',
+            timestamp: new Date(order.timestamp).toLocaleString()
+          })
+          sessionStorage.removeItem('pendingOrder')
+        }
+      } catch (e) {
+        console.warn('Could not load pending order:', e)
+      }
     }
   }, [searchParams])
 
