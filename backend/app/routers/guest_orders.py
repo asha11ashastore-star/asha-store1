@@ -194,11 +194,9 @@ async def create_guest_order(
                 "total": item_total
             })
             
-            # Decrement product stock
-            product = db.query(Product).filter(Product.id == item.product_id).first()
-            if product:
-                product.stock_quantity -= item.quantity
-                logger.info(f"Stock updated for {product.name}: {product.stock_quantity + item.quantity} -> {product.stock_quantity}")
+            # DON'T decrement stock here - wait for payment confirmation via webhook
+            # Stock will be decremented only after successful payment
+            logger.info(f"Order item added: {item.product_name} x{item.quantity} - Stock will be decremented after payment")
         
         db.commit()
         
@@ -595,15 +593,15 @@ async def verify_razorpay_payment(
             SELECT * FROM guest_order_items WHERE order_id = :order_id
         """), {"order_id": order[0]}).fetchall()
         
-        # Decrement stock NOW (payment verified)
-        for item in items:
-            product = db.query(Product).filter(Product.id == item[2]).first()
-            if product:
-                if product.stock_quantity >= item[4]:  # quantity
-                    product.stock_quantity -= item[4]
-                    logger.info(f"Stock decremented for {product.name}: {product.stock_quantity + item[4]} -> {product.stock_quantity}")
-                else:
-                    logger.warning(f"Insufficient stock for product {product.name}")
+        # NOTE: Stock is now decremented via Payment Links webhook
+        # This verify function is for old Razorpay Order flow (not used anymore)
+        # Keeping this commented for reference:
+        # for item in items:
+        #     product = db.query(Product).filter(Product.id == item[2]).first()
+        #     if product:
+        #         if product.stock_quantity >= item[4]:
+        #             product.stock_quantity -= item[4]
+        logger.info(f"Payment verified for order {payment_data.order_number} - Stock will be decremented by webhook")
         
         # Update order status to completed
         db.execute(text("""

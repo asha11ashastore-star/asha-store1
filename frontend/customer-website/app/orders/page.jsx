@@ -95,8 +95,26 @@ export default function OrdersPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-serif text-gray-800 mb-2">No Orders Yet</h2>
-            <p className="text-gray-600 mb-6">You haven't placed any orders. Start shopping to see your orders here!</p>
+            <h2 className="text-2xl font-serif text-gray-800 mb-2">No Orders Found</h2>
+            <p className="text-gray-600 mb-4">You haven't placed any orders with this account yet.</p>
+            
+            {/* Guest Order Notice */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left max-w-md mx-auto">
+              <p className="text-sm text-amber-800">
+                <strong>💡 Did you checkout as a guest?</strong>
+                <br />
+                Guest orders are not shown here. To track your order, please contact us with:
+              </p>
+              <ul className="mt-2 text-sm text-amber-700 space-y-1 ml-4">
+                <li>• Your order number (ORD-XXXXXXXX)</li>
+                <li>• Your email address</li>
+              </ul>
+              <p className="mt-2 text-xs text-amber-600">
+                📧 Email: orders@ashastore.com<br />
+                📞 Phone: +91-9876543210
+              </p>
+            </div>
+            
             <button
               onClick={() => router.push('/collections')}
               className="bg-primary-brown text-white px-8 py-3 rounded-lg hover:bg-dark-brown transition-colors"

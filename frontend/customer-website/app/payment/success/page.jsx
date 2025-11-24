@@ -92,8 +92,8 @@ export default function PaymentSuccessPage() {
                 <h3 className="font-semibold text-primary-brown mb-4">Order Details</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Order ID:</span>
-                    <span className="font-medium">#{orderDetails.orderId}</span>
+                    <span className="text-gray-600">Order Number:</span>
+                    <span className="font-mono font-bold text-lg text-primary-brown">#{orderDetails.orderId}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Payment ID:</span>
@@ -103,6 +103,15 @@ export default function PaymentSuccessPage() {
                     <span className="text-gray-600">Date & Time:</span>
                     <span className="font-medium">{orderDetails.timestamp}</span>
                   </div>
+                </div>
+                
+                {/* Important Notice */}
+                <div className="mt-4 pt-4 border-t border-beige-200">
+                  <p className="text-xs text-gray-600">
+                    <strong className="text-primary-brown">📝 Save your order number!</strong>
+                    <br />
+                    As a guest, you can track your order status by contacting us with your order number and email address.
+                  </p>
                 </div>
               </div>
             )}
