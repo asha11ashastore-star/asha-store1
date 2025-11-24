@@ -18,8 +18,10 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
   })
   const [errors, setErrors] = useState({})
   
-  // Your Razorpay Payment Page Link
-  const RAZORPAY_PAYMENT_LINK = 'https://razorpay.me/@ashadhaundiyal'
+  // Your Razorpay Payment Page Link - from env or fallback
+  const RAZORPAY_PAYMENT_LINK = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || 'https://razorpay.me/@ashadhaundiyal'
+  
+  console.log('RAZORPAY_PAYMENT_LINK configured:', RAZORPAY_PAYMENT_LINK)
 
   if (!isOpen) return null
 
@@ -143,20 +145,30 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       // Create payment URL with LOCKED amount (in paise: ₹1 = 100 paise)
       const amountInPaise = Math.round(totalAmount * 100)
       
+      // Verify Razorpay link is configured
+      if (!RAZORPAY_PAYMENT_LINK || RAZORPAY_PAYMENT_LINK === '') {
+        console.error('RAZORPAY_PAYMENT_LINK is not configured!')
+        throw new Error('Payment link not configured. Please contact support.')
+      }
+      
       // Format: https://razorpay.me/@username?amount=AMOUNT_IN_PAISE
       // This pre-fills and LOCKS the amount on Razorpay payment page
       const paymentUrl = `${RAZORPAY_PAYMENT_LINK}?amount=${amountInPaise}`
       
       console.log('='.repeat(50))
       console.log('PAYMENT DETAILS:')
+      console.log('Razorpay Link:', RAZORPAY_PAYMENT_LINK)
       console.log('Total Amount (₹):', totalAmount)
       console.log('Amount in Paise:', amountInPaise)
       console.log('Payment URL:', paymentUrl)
       console.log('Order Number:', savedOrder.order_number)
+      console.log('URL Length:', paymentUrl.length)
+      console.log('URL is valid:', paymentUrl.startsWith('https://'))
       console.log('='.repeat(50))
       
       // Open Razorpay payment page
-      const opened = window.open(paymentUrl, '_blank')
+      console.log('Opening payment page:', paymentUrl)
+      const opened = window.open(paymentUrl, '_blank', 'noopener,noreferrer')
       
       if (!opened) {
         alert('Payment page blocked! Please allow popups and try again.')
