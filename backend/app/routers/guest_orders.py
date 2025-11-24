@@ -155,13 +155,14 @@ async def create_guest_order(
         # Generate unique order number
         order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
         
-        # Insert order
+        # Insert order - PostgreSQL compatible (use RETURNING)
         result = db.execute(text("""
             INSERT INTO guest_orders 
             (order_number, customer_name, customer_email, customer_phone, 
              customer_address, total_amount, payment_method, notes)
             VALUES (:order_number, :customer_name, :customer_email, :customer_phone,
                     :customer_address, :total_amount, :payment_method, :notes)
+            RETURNING id
         """), {
             "order_number": order_number,
             "customer_name": order_data.customer_name,
@@ -173,7 +174,9 @@ async def create_guest_order(
             "notes": order_data.notes
         })
         
-        order_id = result.lastrowid
+        # Get the returned ID from PostgreSQL
+        order_id = result.fetchone()[0]
+        logger.info(f"Order created with ID: {order_id}")
         
         # Insert order items AND decrement stock
         for item in order_data.items:
@@ -459,13 +462,14 @@ async def create_razorpay_order(
         # Generate unique order number
         order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
         
-        # Create order in database (pending payment)
+        # Create order in database (pending payment) - PostgreSQL compatible
         result = db.execute(text("""
             INSERT INTO guest_orders 
             (order_number, customer_name, customer_email, customer_phone, 
              customer_address, total_amount, payment_method, payment_status, order_status, notes)
             VALUES (:order_number, :customer_name, :customer_email, :customer_phone,
                     :customer_address, :total_amount, 'razorpay', 'pending', 'pending', :notes)
+            RETURNING id
         """), {
             "order_number": order_number,
             "customer_name": order_data.customer_name,
@@ -476,7 +480,9 @@ async def create_razorpay_order(
             "notes": order_data.notes or "Payment via Razorpay"
         })
         
-        order_id = result.lastrowid
+        # Get the returned ID from PostgreSQL
+        order_id = result.fetchone()[0]
+        logger.info(f"Razorpay order created with ID: {order_id}")
         
         # Insert order items (don't decrement stock yet - wait for payment)
         for item in order_data.items:
