@@ -129,6 +129,14 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
 
       const savedOrder = await orderResponse.json()
       console.log('Order created successfully:', savedOrder)
+      console.log('Full response:', JSON.stringify(savedOrder, null, 2))
+      
+      // Validate response has required fields
+      if (!savedOrder || !savedOrder.order_number) {
+        console.error('Invalid order response:', savedOrder)
+        throw new Error('Invalid order response from server. Please try again.')
+      }
+      
       console.log('Order ID:', savedOrder.id)
       console.log('Order Number:', savedOrder.order_number)
       
@@ -157,11 +165,18 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       }
       
       // Show success message with locked amount info
-      alert(`✅ ORDER PLACED SUCCESSFULLY!\n\nOrder Number: ${savedOrder.order_number}\n\n💰 AMOUNT TO PAY: ₹${totalAmount}\n\n🔒 IMPORTANT:\nThe amount is LOCKED at ₹${totalAmount}\nYou CANNOT change this amount\n\nPayment page opened in new tab.\nComplete your payment to confirm order.\n\nThank you for shopping with Aशा!`)
+      const orderNumber = savedOrder.order_number
+      alert(`✅ ORDER CREATED!\n\nOrder Number: ${orderNumber}\n\n💰 AMOUNT TO PAY: ₹${totalAmount}\n\n🔒 Amount is LOCKED\n\nPayment page opened in new tab.\nComplete your payment to confirm order.\n\nThank you!`)
       
       // Clear cart and close
       clearCart()
-      if (onSuccess) onSuccess(savedOrder.order_number)
+      if (onSuccess) {
+        try {
+          onSuccess(orderNumber)
+        } catch (e) {
+          console.error('onSuccess callback error:', e)
+        }
+      }
       onClose()
       setIsLoading(false)
 
