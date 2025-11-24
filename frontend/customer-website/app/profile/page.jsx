@@ -56,31 +56,30 @@ export default function ProfilePage() {
     setMessage({ type: '', text: '' })
     
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch(`${apiService.baseURL}/api/v1/auth/me`, {
+      // Use apiService for consistency
+      const updateData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+      }
+      
+      // Only include phone if it's not empty
+      if (formData.phone && formData.phone.trim()) {
+        updateData.phone = formData.phone
+      }
+      
+      const response = await apiService.request('/api/v1/auth/me', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone: formData.phone
-        })
+        body: JSON.stringify(updateData)
       })
       
-      if (response.ok) {
-        await refreshUser()
-        setMessage({ type: 'success', text: 'Profile updated successfully!' })
-        setIsEditing(false)
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000)
-      } else {
-        const error = await response.json()
-        setMessage({ type: 'error', text: error.detail || 'Failed to update profile' })
-      }
+      // Success
+      await refreshUser()
+      setMessage({ type: 'success', text: 'Profile updated successfully!' })
+      setIsEditing(false)
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000)
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' })
+      console.error('Profile update error:', error)
+      setMessage({ type: 'error', text: error.message || 'Failed to update profile. Please try again.' })
     } finally {
       setLoading(false)
     }
@@ -103,30 +102,23 @@ export default function ProfilePage() {
     setMessage({ type: '', text: '' })
     
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch(`${apiService.baseURL}/api/v1/auth/change-password`, {
+      // Use apiService for consistency
+      const response = await apiService.request('/api/v1/auth/change-password', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({
           current_password: passwordData.current_password,
           new_password: passwordData.new_password
         })
       })
       
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Password changed successfully!' })
-        setPasswordData({ current_password: '', new_password: '', confirm_password: '' })
-        setShowPasswordModal(false)
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000)
-      } else {
-        const error = await response.json()
-        setMessage({ type: 'error', text: error.detail || 'Failed to change password' })
-      }
+      // Success
+      setMessage({ type: 'success', text: 'Password changed successfully!' })
+      setPasswordData({ current_password: '', new_password: '', confirm_password: '' })
+      setShowPasswordModal(false)
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000)
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to change password. Please try again.' })
+      console.error('Password change error:', error)
+      setMessage({ type: 'error', text: error.message || 'Failed to change password. Please try again.' })
     } finally {
       setLoading(false)
     }
