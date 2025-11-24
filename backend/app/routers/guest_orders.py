@@ -363,11 +363,14 @@ async def get_order(
             detail=f"Failed to fetch order: {str(e)}"
         )
 
+class UpdateOrderStatusRequest(BaseModel):
+    order_status: str
+    payment_status: Optional[str] = None
+
 @router.put("/{order_id}/status")
 async def update_order_status(
     order_id: int,
-    order_status: str,
-    payment_status: Optional[str] = None,
+    status_data: UpdateOrderStatusRequest,
     current_seller: User = Depends(get_current_seller),
     db: Session = Depends(get_db)
 ):
@@ -385,7 +388,7 @@ async def update_order_status(
             )
         
         # Update order
-        if payment_status:
+        if status_data.payment_status:
             db.execute(text("""
                 UPDATE guest_orders 
                 SET order_status = :order_status, 
@@ -394,8 +397,8 @@ async def update_order_status(
                 WHERE id = :id
             """), {
                 "id": order_id,
-                "order_status": order_status,
-                "payment_status": payment_status
+                "order_status": status_data.order_status,
+                "payment_status": status_data.payment_status
             })
         else:
             db.execute(text("""
@@ -405,7 +408,7 @@ async def update_order_status(
                 WHERE id = :id
             """), {
                 "id": order_id,
-                "order_status": order_status
+                "order_status": status_data.order_status
             })
         
         db.commit()
