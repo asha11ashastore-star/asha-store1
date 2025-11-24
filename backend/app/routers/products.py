@@ -204,6 +204,72 @@ async def get_categories():
     """Get all available product categories"""
     return [category.value for category in Category]
 
+@router.get("/seller", response_model=PaginatedResponse)
+async def get_current_seller_products(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    current_seller: User = Depends(get_current_seller),
+    db: Session = Depends(get_db)
+):
+    """Get products for currently logged-in seller"""
+    try:
+        # Use current seller's ID from JWT token
+        query = db.query(Product).options(
+            joinedload(Product.images),
+            joinedload(Product.seller)
+        ).filter(Product.seller_id == current_seller.id)
+        
+        # Get total count
+        total = query.count()
+        
+        # Apply pagination
+        offset = (page - 1) * limit
+        products = query.order_by(desc(Product.created_at)).offset(offset).limit(limit).all()
+        
+        # Transform to list response format
+        items = []
+        for product in products:
+            primary_image = None
+            for img in product.images:
+                if img.is_primary:
+                    primary_image = img.image_url
+                    break
+            if not primary_image and product.images:
+                primary_image = product.images[0].image_url
+            
+            items.append(ProductListResponse(
+                id=product.id,
+                seller_id=product.seller_id,
+                name=product.name,
+                category=str(product.category) if product.category else "silk_saree",
+                price=product.price,
+                discounted_price=product.discounted_price,
+                stock_quantity=product.stock_quantity,
+                status=str(product.status) if product.status else "active",
+                primary_image=primary_image,
+                seller_name=f"{product.seller.first_name} {product.seller.last_name}" if product.seller else "Asha Store",
+                created_at=product.created_at
+            ))
+        
+        pages = (total + limit - 1) // limit
+        
+        return PaginatedResponse(
+            items=items,
+            total=total,
+            page=page,
+            limit=limit,
+            pages=pages,
+            has_next=page < pages,
+            has_prev=page > 1
+        )
+        
+    except Exception as e:
+        logger.error(f"Error fetching current seller products: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching products: {str(e)}"
+        )
+
 @router.get("/seller/{seller_id}", response_model=PaginatedResponse)
 async def get_seller_products(
     seller_id: int,
