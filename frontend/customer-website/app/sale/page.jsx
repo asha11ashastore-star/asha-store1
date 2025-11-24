@@ -1,11 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import { useCart } from '../../components/CartProvider'
 import apiService from '../../services/api'
 
 export default function SalePage() {
+  const router = useRouter()
   const { addItem } = useCart()
   const [saleProducts, setSaleProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -87,14 +89,17 @@ export default function SalePage() {
               const discount = Math.round((1 - parseFloat(product.discounted_price) / parseFloat(product.price)) * 100)
               
               return (
-                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative">
+                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative cursor-pointer">
                   {/* Sale Badge */}
                   <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold z-10">
                     SALE {discount}% OFF
                   </div>
                   
                   {/* Product Image */}
-                  <div className="h-64 bg-gradient-to-br from-beige-100 to-beige-200 flex items-center justify-center">
+                  <div 
+                    className="h-64 bg-gradient-to-br from-beige-100 to-beige-200 flex items-center justify-center"
+                    onClick={() => router.push(`/product/${product.id}`)}
+                  >
                     {product.images && product.images.length > 0 ? (
                       <img 
                         src={product.images[0]} 
@@ -110,7 +115,12 @@ export default function SalePage() {
                   </div>
                   
                   <div className="p-4">
-                    <h3 className="font-medium text-lg mb-1 line-clamp-1">{product.name}</h3>
+                    <h3 
+                      className="font-medium text-lg mb-1 line-clamp-1 cursor-pointer hover:text-red-600"
+                      onClick={() => router.push(`/product/${product.id}`)}
+                    >
+                      {product.name}
+                    </h3>
                     <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
                     
                     <div className="flex items-center space-x-2 mb-3">
@@ -123,7 +133,10 @@ export default function SalePage() {
                     
                     {product.stock_quantity > 0 ? (
                       <button
-                        onClick={() => addItem({ ...product, price: product.discounted_price })}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          addItem({ ...product, price: product.discounted_price })
+                        }}
                         className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
                       >
                         Add to Cart - Sale Price

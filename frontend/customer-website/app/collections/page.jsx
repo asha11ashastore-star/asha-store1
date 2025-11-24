@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import { useCart } from '../../components/CartProvider'
@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 function CollectionsContent() {
+  const router = useRouter()
   const { addItem } = useCart()
   const searchParams = useSearchParams()
   const [products, setProducts] = useState([])
@@ -111,8 +112,11 @@ function CollectionsContent() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="aspect-square relative bg-gray-100">
+              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
+                <div 
+                  className="aspect-square relative bg-gray-100"
+                  onClick={() => router.push(`/product/${product.id}`)}
+                >
                   <img
                     src={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}${product.primary_image || '/uploads/placeholder.jpg'}`}
                     alt={product.name}
@@ -123,12 +127,20 @@ function CollectionsContent() {
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg text-beige-900 mb-2 line-clamp-2">{product.name}</h3>
+                  <h3 
+                    className="font-semibold text-lg text-beige-900 mb-2 line-clamp-2 cursor-pointer hover:text-beige-700"
+                    onClick={() => router.push(`/product/${product.id}`)}
+                  >
+                    {product.name}
+                  </h3>
                   <p className="text-beige-600 text-sm mb-3 line-clamp-2">{product.description}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-beige-800">₹{product.price?.toLocaleString()}</span>
                     <button
-                      onClick={() => addItem(product)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        addItem(product)
+                      }}
                       className="px-4 py-2 bg-beige-800 text-white rounded-lg hover:bg-beige-900 transition-colors text-sm"
                     >
                       Add to Cart
