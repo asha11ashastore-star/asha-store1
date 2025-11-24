@@ -19,7 +19,7 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
   const [errors, setErrors] = useState({})
   
   // Your Razorpay Payment Page Link - from env or fallback
-  const RAZORPAY_PAYMENT_LINK = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || 'https://razorpay.me/@ashadhaundiyal'
+  const RAZORPAY_PAYMENT_LINK = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || 'https://razorpay.me/@ashadhaundiyal8487'
   
   console.log('RAZORPAY_PAYMENT_LINK configured:', RAZORPAY_PAYMENT_LINK)
 
