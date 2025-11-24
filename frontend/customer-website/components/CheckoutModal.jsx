@@ -166,18 +166,50 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       console.log('URL is valid:', paymentUrl.startsWith('https://'))
       console.log('='.repeat(50))
       
-      // Open Razorpay payment page
+      // Try to open Razorpay payment page
       console.log('Opening payment page:', paymentUrl)
-      const opened = window.open(paymentUrl, '_blank', 'noopener,noreferrer')
       
-      if (!opened) {
-        alert('Payment page blocked! Please allow popups and try again.')
-        setIsLoading(false)
-        return
+      const orderNumber = savedOrder.order_number
+      
+      // Try opening in new window
+      let opened = null
+      try {
+        opened = window.open(paymentUrl, '_blank')
+      } catch (e) {
+        console.error('window.open blocked:', e)
       }
       
-      // Show success message with locked amount info
-      const orderNumber = savedOrder.order_number
+      // If blocked, provide clickable link
+      if (!opened || opened.closed || typeof opened.closed == 'undefined') {
+        console.warn('Popup blocked, showing link instead')
+        
+        const proceed = confirm(
+          `✅ ORDER CREATED!\n\n` +
+          `Order Number: ${orderNumber}\n\n` +
+          `💰 AMOUNT TO PAY: ₹${totalAmount}\n\n` +
+          `⚠️ Popup blocked!\n\n` +
+          `Click OK to open payment page now.\n` +
+          `(You may need to allow popups)`
+        )
+        
+        if (proceed) {
+          // Try again or redirect current page
+          window.location.href = paymentUrl
+          return // Don't clear cart yet
+        } else {
+          // Show link to copy
+          alert(
+            `Please open this link to complete payment:\n\n` +
+            `${paymentUrl}\n\n` +
+            `Copy this link and open in browser.`
+          )
+          setIsLoading(false)
+          return
+        }
+      }
+      
+      // Success - popup opened
+      console.log('Payment page opened successfully')
       alert(`✅ ORDER CREATED!\n\nOrder Number: ${orderNumber}\n\n💰 AMOUNT TO PAY: ₹${totalAmount}\n\n🔒 Amount is LOCKED\n\nPayment page opened in new tab.\nComplete your payment to confirm order.\n\nThank you!`)
       
       // Clear cart and close
