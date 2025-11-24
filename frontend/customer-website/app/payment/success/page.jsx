@@ -11,14 +11,26 @@ export default function PaymentSuccessPage() {
   const [orderDetails, setOrderDetails] = useState(null)
 
   useEffect(() => {
-    // Get order details from URL params or localStorage
-    const orderId = searchParams.get('order_id')
-    const paymentId = searchParams.get('payment_id')
+    // Get order details from URL params (from Razorpay callback)
+    const orderNumber = searchParams.get('order') || searchParams.get('order_id')
+    const paymentId = searchParams.get('payment_id') || searchParams.get('razorpay_payment_id')
+    const paymentLinkId = searchParams.get('razorpay_payment_link_id')
     
-    if (orderId && paymentId) {
+    // Clear cart after successful payment
+    if (orderNumber) {
+      try {
+        localStorage.removeItem('cart')
+        // Dispatch custom event to update cart count
+        window.dispatchEvent(new Event('cartUpdated'))
+      } catch (e) {
+        console.warn('Could not clear cart:', e)
+      }
+    }
+    
+    if (orderNumber) {
       setOrderDetails({
-        orderId,
-        paymentId,
+        orderId: orderNumber,
+        paymentId: paymentId || 'Processing...',
         timestamp: new Date().toLocaleString()
       })
     }
