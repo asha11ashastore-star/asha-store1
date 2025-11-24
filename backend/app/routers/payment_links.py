@@ -40,7 +40,6 @@ class PaymentLinkRequest(BaseModel):
 
 class PaymentLinkResponse(BaseModel):
     payment_link_id: str
-    payment_link_url: str
     short_url: str
     order_number: str
     amount: float
@@ -178,7 +177,6 @@ async def create_payment_link(
         
         return PaymentLinkResponse(
             payment_link_id=payment_link['id'],
-            payment_link_url=payment_link['url'],
             short_url=payment_link['short_url'],
             order_number=order_number,
             amount=request.total_amount,
