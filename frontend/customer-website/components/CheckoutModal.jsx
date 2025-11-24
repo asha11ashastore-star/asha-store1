@@ -75,7 +75,7 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         throw new Error('Invalid order amount. Please check your cart.')
       }
       
-      console.log('Creating order with amount:', totalAmount)
+      console.log('Creating Payment Link with locked amount:', totalAmount)
       
       // Create order in database with formatted address
       const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} - ${customerInfo.pinCode}`
@@ -92,14 +92,14 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
           price: parseFloat(item.price.toString().replace(/[^0-9.]/g, ''))
         })),
         total_amount: totalAmount,
-        payment_method: 'razorpay',
-        notes: 'Payment via Razorpay.me'
+        notes: 'Payment via Razorpay Payment Link'
       }
 
-      console.log('Sending order data:', orderData)
+      console.log('Creating Razorpay Payment Link (amount will be LOCKED)...')
+      console.log('Order data:', orderData)
 
-      // Save order to backend
-      const orderResponse = await fetch(`${API_BASE_URL}/api/v1/guest-orders`, {
+      // Create Razorpay Payment Link (LOCKED AMOUNT)
+      const paymentLinkResponse = await fetch(`${API_BASE_URL}/api/v1/payment-links/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -107,12 +107,12 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         body: JSON.stringify(orderData)
       })
 
-      if (!orderResponse.ok) {
-        let errorMessage = 'Failed to create order'
+      if (!paymentLinkResponse.ok) {
+        let errorMessage = 'Failed to create payment link'
         try {
-          const errorData = await orderResponse.json()
-          console.error('Order creation failed:', errorData)
-          console.error('Response status:', orderResponse.status)
+          const errorData = await paymentLinkResponse.json()
+          console.error('Payment link creation failed:', errorData)
+          console.error('Response status:', paymentLinkResponse.status)
           
           // Extract detailed error message
           if (typeof errorData.detail === 'string') {
@@ -124,54 +124,40 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
           }
         } catch (e) {
           console.error('Could not parse error response:', e)
-          errorMessage = `Server error (${orderResponse.status}): ${orderResponse.statusText}`
+          errorMessage = `Server error (${paymentLinkResponse.status}): ${paymentLinkResponse.statusText}`
         }
         throw new Error(errorMessage)
       }
 
-      const savedOrder = await orderResponse.json()
-      console.log('Order created successfully:', savedOrder)
-      console.log('Full response:', JSON.stringify(savedOrder, null, 2))
+      const paymentLinkData = await paymentLinkResponse.json()
+      console.log('✅ Payment Link created successfully!')
+      console.log('Payment Link Data:', JSON.stringify(paymentLinkData, null, 2))
       
-      // Validate response has required fields
-      if (!savedOrder || !savedOrder.order_number) {
-        console.error('Invalid order response:', savedOrder)
-        throw new Error('Invalid order response from server. Please try again.')
+      // Validate response
+      if (!paymentLinkData || !paymentLinkData.short_url || !paymentLinkData.order_number) {
+        console.error('Invalid payment link response:', paymentLinkData)
+        throw new Error('Invalid payment link response. Please try again.')
       }
       
-      console.log('Order ID:', savedOrder.id)
-      console.log('Order Number:', savedOrder.order_number)
-      
-      // Create payment URL with LOCKED amount (in paise: ₹1 = 100 paise)
-      const amountInPaise = Math.round(totalAmount * 100)
-      
-      // Verify Razorpay link is configured
-      if (!RAZORPAY_PAYMENT_LINK || RAZORPAY_PAYMENT_LINK === '') {
-        console.error('RAZORPAY_PAYMENT_LINK is not configured!')
-        throw new Error('Payment link not configured. Please contact support.')
-      }
-      
-      // Format: https://razorpay.me/@username?amount=AMOUNT_IN_PAISE
-      // This pre-fills and LOCKS the amount on Razorpay payment page
-      const paymentUrl = `${RAZORPAY_PAYMENT_LINK}?amount=${amountInPaise}`
+      const orderNumber = paymentLinkData.order_number
+      const paymentUrl = paymentLinkData.short_url  // This is the LOCKED payment link!
       
       console.log('='.repeat(50))
-      console.log('PAYMENT DETAILS:')
-      console.log('Razorpay Link:', RAZORPAY_PAYMENT_LINK)
+      console.log('🔒 PAYMENT LINK CREATED (AMOUNT LOCKED!):')
+      console.log('Order Number:', orderNumber)
       console.log('Total Amount (₹):', totalAmount)
-      console.log('Amount in Paise:', amountInPaise)
-      console.log('Payment URL:', paymentUrl)
-      console.log('Order Number:', savedOrder.order_number)
-      console.log('URL Length:', paymentUrl.length)
-      console.log('URL is valid:', paymentUrl.startsWith('https://'))
+      console.log('Amount in Paise:', paymentLinkData.amount)
+      console.log('Payment Link ID:', paymentLinkData.payment_link_id)
+      console.log('Payment URL (LOCKED):', paymentUrl)
+      console.log('Status:', paymentLinkData.status)
+      console.log('Expires At:', new Date(paymentLinkData.expires_at * 1000).toLocaleString())
+      console.log('🔒 Amount is LOCKED in Razorpay - Customer CANNOT change it!')
       console.log('='.repeat(50))
       
-      // Try to open Razorpay payment page
-      console.log('Opening payment page:', paymentUrl)
+      // Open the LOCKED payment link
+      console.log('Opening LOCKED payment link:', paymentUrl)
       
-      const orderNumber = savedOrder.order_number
-      
-      // Try opening in new window
+      // Try opening payment link in new window
       let opened = null
       try {
         opened = window.open(paymentUrl, '_blank')
@@ -187,13 +173,13 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
           `✅ ORDER CREATED!\n\n` +
           `Order Number: ${orderNumber}\n\n` +
           `💰 AMOUNT TO PAY: ₹${totalAmount}\n\n` +
+          `🔒 AMOUNT IS LOCKED - Cannot be changed!\n\n` +
           `⚠️ Popup blocked!\n\n` +
-          `Click OK to open payment page now.\n` +
-          `(You may need to allow popups)`
+          `Click OK to open payment page now.`
         )
         
         if (proceed) {
-          // Try again or redirect current page
+          // Redirect to payment page
           window.location.href = paymentUrl
           return // Don't clear cart yet
         } else {
@@ -201,16 +187,26 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
           alert(
             `Please open this link to complete payment:\n\n` +
             `${paymentUrl}\n\n` +
-            `Copy this link and open in browser.`
+            `🔒 Amount: ₹${totalAmount} (LOCKED)\n\n` +
+            `Copy and open in browser.`
           )
           setIsLoading(false)
           return
         }
       }
       
-      // Success - popup opened
-      console.log('Payment page opened successfully')
-      alert(`✅ ORDER CREATED!\n\nOrder Number: ${orderNumber}\n\n💰 AMOUNT TO PAY: ₹${totalAmount}\n\n🔒 Amount is LOCKED\n\nPayment page opened in new tab.\nComplete your payment to confirm order.\n\nThank you!`)
+      // Success - payment link opened!
+      console.log('✅ Payment link opened successfully')
+      alert(
+        `✅ ORDER CREATED!\n\n` +
+        `Order Number: ${orderNumber}\n\n` +
+        `💰 AMOUNT TO PAY: ₹${totalAmount}\n\n` +
+        `🔒 AMOUNT IS LOCKED\n` +
+        `Customer CANNOT change it!\n\n` +
+        `Payment page opened in new tab.\n` +
+        `Complete payment to confirm order.\n\n` +
+        `Thank you for shopping with Aशा!`
+      )
       
       // Clear cart and close
       clearCart()
