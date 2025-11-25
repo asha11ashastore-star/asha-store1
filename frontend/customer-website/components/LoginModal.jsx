@@ -60,15 +60,28 @@ export default function LoginModal({ isOpen, onClose }) {
       }, 2000)
     } catch (error) {
       console.error('Registration error:', error)
-      if (error.message.includes('Email already registered')) {
+      console.error('Error message:', error.message)
+      
+      const errorMsg = error.message.toLowerCase()
+      
+      if (errorMsg.includes('email') && errorMsg.includes('already')) {
         setMessage('Email already registered. Please click "Already have an account? Login" below to sign in.')
         // Auto-switch to login form after 3 seconds
         setTimeout(() => {
           setIsSignUp(false)
           setMessage('')
         }, 3000)
-      } else if (error.message.includes('Username already taken')) {
+      } else if (errorMsg.includes('username') && errorMsg.includes('already')) {
         setMessage('Username already taken. Please choose a different username.')
+      } else if (errorMsg.includes('unique constraint') || errorMsg.includes('duplicate')) {
+        // Database constraint error - likely email or username
+        if (errorMsg.includes('email')) {
+          setMessage('This email is already registered. Please use a different email or login.')
+        } else if (errorMsg.includes('username')) {
+          setMessage('This username is already taken. Please choose a different username.')
+        } else {
+          setMessage('Account with these details already exists. Please try different credentials.')
+        }
       } else {
         setMessage(`Registration failed: ${error.message}`)
       }
@@ -155,9 +168,12 @@ export default function LoginModal({ isOpen, onClose }) {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-beige-600"
-                      placeholder="Choose a username"
+                      placeholder="Choose a unique username"
                       required
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Tip: Use your email prefix or add numbers (e.g., sarah_2024)
+                    </p>
                   </div>
                   
                   <div>
