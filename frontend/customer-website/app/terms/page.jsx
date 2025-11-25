@@ -102,8 +102,8 @@ export default function TermsOfService() {
               For questions about these Terms of Service, contact us at:
             </p>
             <div className="mt-3 text-beige-700">
-              <p>Email: orders@ashastore.com</p>
-              <p>Phone: +91-9876543210</p>
+              <p>Email: asha11ashastore@gmail.com</p>
+              <p>Phone: +91-9818174388</p>
             </div>
           </section>
 

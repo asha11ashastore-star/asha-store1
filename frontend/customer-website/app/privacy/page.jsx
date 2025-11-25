@@ -64,7 +64,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-2xl font-semibold text-beige-800 mb-4">Your Rights</h2>
             <p className="text-beige-700 leading-relaxed">
               You have the right to access, update, or delete your personal information. 
-              Contact us at orders@ashastore.com to exercise these rights.
+              Contact us at asha11ashastore@gmail.com to exercise these rights.
             </p>
           </section>
 
@@ -74,8 +74,8 @@ export default function PrivacyPolicy() {
               If you have questions about this Privacy Policy, please contact us at:
             </p>
             <div className="mt-3 text-beige-700">
-              <p>Email: orders@ashastore.com</p>
-              <p>Phone: +91-9876543210</p>
+              <p>Email: asha11ashastore@gmail.com</p>
+              <p>Phone: +91-9818174388</p>
             </div>
           </section>
 

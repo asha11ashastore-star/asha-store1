@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
                   Need help?{' '}
-                  <a href="mailto:orders@ashastore.com" className="text-primary-brown hover:underline">
+                  <a href="mailto:asha11ashastore@gmail.com" className="text-primary-brown hover:underline">
                     Contact Support
                   </a>
                 </p>

@@ -248,12 +248,12 @@ export default function PaymentSuccessPage() {
                 Questions about your order? 
                 <br />
                 Contact us at{' '}
-                <Link href="mailto:orders@ashastore.com" className="text-primary-brown hover:underline">
-                  orders@ashastore.com
+                <Link href="mailto:asha11ashastore@gmail.com" className="text-primary-brown hover:underline">
+                  asha11ashastore@gmail.com
                 </Link>
                 {' '}or call{' '}
-                <Link href="tel:+91-9876543210" className="text-primary-brown hover:underline">
-                  +91-9876543210
+                <Link href="tel:+91-9818174388" className="text-primary-brown hover:underline">
+                  +91-9818174388
                 </Link>
               </p>
             </div>
