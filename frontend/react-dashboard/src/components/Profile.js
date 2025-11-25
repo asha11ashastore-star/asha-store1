@@ -32,7 +32,13 @@ const Profile = () => {
       });
 
       if (productsResponse.ok) {
-        const products = await productsResponse.json();
+        const productsData = await productsResponse.json();
+        
+        // Handle both array and object response formats
+        const products = Array.isArray(productsData) 
+          ? productsData 
+          : (productsData.products || []);
+        
         const outOfStockCount = products.filter(p => p.stock_quantity === 0).length;
         
         setStats(prev => ({
@@ -50,7 +56,13 @@ const Profile = () => {
       });
 
       if (ordersResponse.ok) {
-        const orders = await ordersResponse.json();
+        const ordersData = await ordersResponse.json();
+        
+        // Handle both array and object response formats
+        const orders = Array.isArray(ordersData) 
+          ? ordersData 
+          : (ordersData.orders || ordersData.items || []);
+        
         const pendingCount = orders.filter(o => 
           o.order_status === 'pending' || o.order_status === 'processing'
         ).length;
