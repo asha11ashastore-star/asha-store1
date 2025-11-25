@@ -42,30 +42,32 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true)
-      console.log('📋 Fetching orders for user:', user?.email)
+      setError(null)
+      console.log('📋 Fetching orders for customer:', user?.email)
       
-      // Fetch all guest orders from API
-      const response = await apiService.request('/api/v1/guest-orders')
-      console.log('📋 Total orders in database:', response?.length || 0)
+      // Use customer-specific endpoint - no seller auth required!
+      const customerEmail = encodeURIComponent(user.email)
+      const response = await apiService.request(`/api/v1/guest-orders/my-orders/${customerEmail}`)
       
-      // Filter orders by user email
-      const userOrders = response.filter(order => {
-        const matches = order.customer_email === user.email
-        if (matches) {
-          console.log('✅ Found order:', order.order_number, 'for', user.email)
-        }
-        return matches
+      console.log('📋 Customer orders found:', response?.length || 0)
+      
+      // Response is already filtered for this customer
+      const userOrders = response || []
+      
+      userOrders.forEach(order => {
+        console.log('✅ Found order:', order.order_number, 'Status:', order.order_status, 'Payment:', order.payment_status)
       })
       
-      console.log('📋 User orders found:', userOrders.length)
       setOrders(userOrders)
       
       if (userOrders.length === 0) {
-        console.warn('⚠️ No orders found for user:', user.email)
+        console.warn('⚠️ No orders found for customer:', user.email)
         console.warn('⚠️ This could mean:')
-        console.warn('   - User just placed first order (wait a few seconds)')
-        console.warn('   - Email mismatch between order and user account')
-        console.warn('   - Orders not yet synced from payment')
+        console.warn('   - You haven\'t placed any orders yet')
+        console.warn('   - Order just placed (wait 5-10 seconds and refresh)')
+        console.warn('   - Different email used for order')
+      } else {
+        console.log('✅ Successfully loaded', userOrders.length, 'order(s)')
       }
     } catch (error) {
       console.error('❌ Error fetching orders:', error)

@@ -246,6 +246,67 @@ async def create_guest_order(
             detail=f"Failed to create order: {str(e)}"
         )
 
+@router.get("/my-orders/{customer_email}", response_model=List[GuestOrderResponse])
+async def get_customer_orders(
+    customer_email: str,
+    db: Session = Depends(get_db)
+):
+    """Get orders for a specific customer by email (no auth required - customers can see their own orders)"""
+    try:
+        # Ensure tables exist
+        create_guest_order_tables(db)
+        
+        # Fetch orders for this customer email
+        orders = db.execute(text("""
+            SELECT * FROM guest_orders 
+            WHERE customer_email = :email 
+            ORDER BY created_at DESC
+        """), {"email": customer_email}).fetchall()
+        
+        result = []
+        for order in orders:
+            # Fetch items for this order
+            items_result = db.execute(text("""
+                SELECT * FROM guest_order_items WHERE order_id = :order_id
+            """), {"order_id": order[0]}).fetchall()
+            
+            order_items = [
+                OrderItemResponse(
+                    id=item[0],
+                    product_id=item[2],
+                    product_name=item[3],
+                    quantity=item[4],
+                    price=item[5],
+                    total=item[6]
+                ) for item in items_result
+            ]
+            
+            result.append(GuestOrderResponse(
+                id=order[0],
+                order_number=order[1],
+                customer_name=order[2],
+                customer_email=order[3],
+                customer_phone=order[4],
+                customer_address=order[5],
+                total_amount=order[6],
+                payment_method=order[7],
+                payment_status=order[8],
+                order_status=order[9],
+                notes=order[10],
+                created_at=str(order[11]),
+                items=order_items
+            ))
+        
+        logger.info(f"Found {len(result)} orders for customer: {customer_email}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch customer orders: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch orders: {str(e)}"
+        )
+
 @router.get("", response_model=List[GuestOrderResponse])
 async def get_all_orders(
     current_seller: User = Depends(get_current_seller),
