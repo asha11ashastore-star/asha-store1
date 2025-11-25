@@ -1,12 +1,17 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCart } from './CartProvider'
+import { useAuth } from '../contexts/AuthContext'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'
 
 export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
+  const router = useRouter()
+  const { user } = useAuth()
   const { items, getTotal, clearCart } = useCart()
   const [isLoading, setIsLoading] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -22,6 +27,15 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
   const RAZORPAY_PAYMENT_LINK = process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_LINK || 'https://razorpay.me/@ashadhaundiyal8487'
   
   console.log('RAZORPAY_PAYMENT_LINK configured:', RAZORPAY_PAYMENT_LINK)
+
+  // Check if user is logged in when modal opens
+  useEffect(() => {
+    if (isOpen && !user) {
+      setShowLoginPrompt(true)
+    } else {
+      setShowLoginPrompt(false)
+    }
+  }, [isOpen, user])
 
   if (!isOpen) return null
 
@@ -199,6 +213,55 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       style: 'currency',
       currency: 'INR'
     }).format(price)
+  }
+
+  // Show login prompt if not logged in
+  if (showLoginPrompt) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Login Required</h2>
+          <p className="text-gray-600 mb-6">
+            Please login or create an account to place an order. This allows you to track your orders and see your order history.
+          </p>
+          
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                onClose()
+                router.push('/auth/login')
+              }}
+              className="w-full bg-primary-brown text-white py-3 rounded-lg hover:bg-dark-brown transition-colors font-semibold"
+            >
+              Login to Continue
+            </button>
+            
+            <button
+              onClick={() => {
+                onClose()
+                router.push('/auth/signup')
+              }}
+              className="w-full bg-beige-200 text-primary-brown py-3 rounded-lg hover:bg-beige-300 transition-colors font-semibold"
+            >
+              Create New Account
+            </button>
+            
+            <button
+              onClick={onClose}
+              className="w-full text-gray-600 py-2 hover:text-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
