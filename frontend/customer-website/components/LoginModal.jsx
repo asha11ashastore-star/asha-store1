@@ -1,8 +1,10 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function LoginModal({ isOpen, onClose }) {
+  const router = useRouter()
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -187,9 +189,24 @@ export default function LoginModal({ isOpen, onClose }) {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleClose()
+                        router.push('/auth/forgot-password')
+                      }}
+                      className="text-xs text-beige-600 hover:underline"
+                      style={{ color: '#B83C3A' }}
+                    >
+                      Forgot Password?
+                    </button>
+                  )}
+                </div>
                 <input
                   type="password"
                   value={password}
