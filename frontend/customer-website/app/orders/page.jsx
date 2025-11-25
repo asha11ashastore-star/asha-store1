@@ -15,16 +15,28 @@ export default function OrdersPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    // If not logged in, redirect to login
-    if (!authLoading && !user) {
+    console.log('🔄 Orders page - Auth status:', {
+      authLoading,
+      userExists: !!user,
+      userEmail: user?.email
+    })
+    
+    // Wait for auth to finish loading
+    if (authLoading) {
+      console.log('⏳ Waiting for auth to load...')
+      return
+    }
+    
+    // If not logged in after auth loaded, redirect to login
+    if (!user) {
+      console.log('❌ No user found, redirecting to login')
       router.push('/auth/login')
       return
     }
     
     // If logged in, fetch their orders from database
-    if (user) {
-      fetchOrders()
-    }
+    console.log('✅ User logged in, fetching orders for:', user.email)
+    fetchOrders()
   }, [user, authLoading, router])
 
   const fetchOrders = async () => {
