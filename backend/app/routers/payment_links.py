@@ -133,6 +133,23 @@ async def create_payment_link(
         # Create Razorpay Payment Link with LOCKED amount
         amount_in_paise = int(request.total_amount * 100)
         
+        # Check Razorpay Payment Link limits
+        # Test Mode: Max ₹5,00,000 (5 lakh paise)
+        # Live Mode: Much higher limits
+        MAX_AMOUNT_TEST_MODE = 500000  # ₹5,000 in paise
+        MAX_AMOUNT_LIVE_MODE = 100000000  # ₹10,00,000 in paise
+        
+        # Determine if in test or live mode based on key
+        is_test_mode = settings.razorpay_key_id.startswith('rzp_test_')
+        max_allowed = MAX_AMOUNT_TEST_MODE if is_test_mode else MAX_AMOUNT_LIVE_MODE
+        
+        if amount_in_paise > max_allowed:
+            max_amount_rupees = max_allowed / 100
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Payment amount ₹{request.total_amount:,.2f} exceeds maximum allowed ₹{max_amount_rupees:,.2f} in {'test' if is_test_mode else 'live'} mode. Please contact support for large orders or enable live mode for higher limits."
+            )
+        
         # Build items description
         items_description = ", ".join([f"{item.product_name} x{item.quantity}" for item in request.items])
         
@@ -158,7 +175,7 @@ async def create_payment_link(
             "callback_method": "get"
         }
         
-        logger.info(f"Creating Razorpay Payment Link for order {order_number}, amount: ₹{request.total_amount}")
+        logger.info(f"Creating Razorpay Payment Link for order {order_number}, amount: ₹{request.total_amount} ({'TEST' if is_test_mode else 'LIVE'} mode)")
         
         payment_link = razorpay_client.payment_link.create(payment_link_data)
         
