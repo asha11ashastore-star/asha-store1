@@ -118,7 +118,11 @@ function CollectionsContent() {
                   onClick={() => router.push(`/product/${product.id}`)}
                 >
                   <img
-                    src={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}${product.primary_image || '/uploads/placeholder.jpg'}`}
+                    src={
+                      product.primary_image?.startsWith('http') 
+                        ? product.primary_image 
+                        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}${product.primary_image || '/uploads/placeholder.jpg'}`
+                    }
                     alt={product.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {

@@ -221,7 +221,11 @@ export default function ProductDetailPage() {
               <div className="aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden">
                 {product.images && product.images.length > 0 ? (
                   <img 
-                    src={`${API_BASE_URL}${product.images[selectedImage]?.image_url || product.images[0]?.image_url}`}
+                    src={
+                      (product.images[selectedImage]?.image_url || product.images[0]?.image_url)?.startsWith('http')
+                        ? (product.images[selectedImage]?.image_url || product.images[0]?.image_url)
+                        : `${API_BASE_URL}${product.images[selectedImage]?.image_url || product.images[0]?.image_url}`
+                    }
                     alt={product.images[selectedImage]?.alt_text || product.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -257,7 +261,11 @@ export default function ProductDetailPage() {
                     }`}
                   >
                     <img 
-                      src={`${API_BASE_URL}${image.image_url}`}
+                      src={
+                        image.image_url?.startsWith('http')
+                          ? image.image_url
+                          : `${API_BASE_URL}${image.image_url}`
+                      }
                       alt={image.alt_text || product.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
