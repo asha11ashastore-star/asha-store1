@@ -4,11 +4,28 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Header from '../../../components/Header'
 import Footer from '../../../components/Footer'
 import Link from 'next/link'
+import { useAuth } from '../../../contexts/AuthContext'
 
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [orderDetails, setOrderDetails] = useState(null)
+  const { refreshUser } = useAuth()
+  
+  // Force refresh user session after payment redirect
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        console.log('🔄 Payment Success - Restoring user session...')
+        await refreshUser()
+        console.log('✅ User session restored after payment')
+      } catch (error) {
+        console.warn('⚠️ Could not restore session (user might be guest):', error)
+        // Continue anyway - guest orders are fine
+      }
+    }
+    restoreSession()
+  }, [])
 
   useEffect(() => {
     const updateOrderStatus = async () => {
