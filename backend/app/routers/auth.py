@@ -292,6 +292,100 @@ async def verify_email(
             detail="Email verification failed"
         )
 
+from pydantic import BaseModel
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """Send password reset email"""
+    try:
+        # Find user by email
+        user = auth_manager.get_user_by_email(db, request.email)
+        
+        # Always return success to prevent email enumeration
+        if not user:
+            logger.info(f"Password reset requested for non-existent email: {request.email}")
+            return {"message": "If the email exists, a password reset link has been sent"}
+        
+        # Generate reset token (valid for 1 hour)
+        reset_token = auth_manager.create_access_token(
+            data={"sub": str(user.id), "type": "password_reset"},
+            expires_delta=60  # 60 minutes
+        )
+        
+        # Create reset link
+        reset_link = f"https://customer-website-lovat.vercel.app/auth/reset-password?token={reset_token}"
+        
+        # Send email (if email service is configured)
+        try:
+            if email_service:
+                await email_service.send_password_reset_email(user.email, reset_link, user.first_name)
+                logger.info(f"Password reset email sent to: {user.email}")
+        except Exception as email_error:
+            logger.warning(f"Could not send email (service may not be configured): {email_error}")
+            # Don't fail - return instructions anyway
+        
+        logger.info(f"Password reset requested for: {user.email}")
+        return {
+            "message": "If the email exists, a password reset link has been sent",
+            "reset_link": reset_link if not email_service else None  # Only show link if email not sent
+        }
+        
+    except Exception as e:
+        logger.error(f"Forgot password failed: {e}")
+        return {"message": "If the email exists, a password reset link has been sent"}
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """Reset password using reset token"""
+    try:
+        # Verify reset token
+        payload = auth_manager.verify_token(request.token, "access")
+        if not payload or payload.get("type") != "password_reset":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
+        
+        user_id = payload.get("sub")
+        user = auth_manager.get_user_by_id(db, int(user_id))
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Truncate password if too long for bcrypt
+        password_to_hash = request.new_password[:72] if len(request.new_password) > 72 else request.new_password
+        
+        # Update password
+        user.hashed_password = auth_manager.get_password_hash(password_to_hash)
+        db.commit()
+        
+        logger.info(f"Password reset successfully for user: {user.email}")
+        return {"message": "Password reset successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Password reset failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password reset failed"
+        )
+
 @router.post("/logout")
 async def logout_user(
     current_user: User = Depends(get_current_user)
