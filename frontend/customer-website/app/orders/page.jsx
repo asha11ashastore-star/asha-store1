@@ -30,18 +30,34 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true)
-      // Try to fetch orders from API
-      // For now, showing empty state since endpoint might not exist
+      console.log('📋 Fetching orders for user:', user?.email)
+      
+      // Fetch all guest orders from API
       const response = await apiService.request('/api/v1/guest-orders')
+      console.log('📋 Total orders in database:', response?.length || 0)
       
       // Filter orders by user email
-      const userOrders = response.filter(order => 
-        order.customer_email === user.email
-      )
+      const userOrders = response.filter(order => {
+        const matches = order.customer_email === user.email
+        if (matches) {
+          console.log('✅ Found order:', order.order_number, 'for', user.email)
+        }
+        return matches
+      })
       
+      console.log('📋 User orders found:', userOrders.length)
       setOrders(userOrders)
+      
+      if (userOrders.length === 0) {
+        console.warn('⚠️ No orders found for user:', user.email)
+        console.warn('⚠️ This could mean:')
+        console.warn('   - User just placed first order (wait a few seconds)')
+        console.warn('   - Email mismatch between order and user account')
+        console.warn('   - Orders not yet synced from payment')
+      }
     } catch (error) {
-      console.error('Error fetching orders:', error)
+      console.error('❌ Error fetching orders:', error)
+      setError('Failed to load orders. Please refresh the page.')
       setOrders([])
     } finally {
       setLoading(false)
@@ -83,9 +99,23 @@ export default function OrdersPage() {
       
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-serif text-primary-brown mb-2">My Orders</h1>
-          <p className="text-gray-600">Track and manage your orders</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-serif text-primary-brown mb-2">My Orders</h1>
+            <p className="text-gray-600">Track and manage your orders</p>
+            {user && (
+              <p className="text-sm text-gray-500 mt-1">Logged in as: {user.email}</p>
+            )}
+          </div>
+          <button
+            onClick={() => fetchOrders()}
+            className="px-4 py-2 bg-primary-brown text-white rounded-lg hover:bg-dark-brown transition-colors flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
         </div>
 
         {/* Orders List */}

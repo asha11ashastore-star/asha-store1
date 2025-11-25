@@ -54,30 +54,14 @@ export default function PaymentSuccessPage() {
           // Continue anyway - order was created, just status update failed
         }
       }
-      
-      // Clear cart after successful payment
+            // Clear cart after successful payment
       if (orderNumber) {
         try {
           localStorage.removeItem('cart')
           // Dispatch custom event to update cart count
           window.dispatchEvent(new Event('cartUpdated'))
-          console.log('Cart cleared after successful payment')
-          
-          // Save this order to recent guest orders for "My Orders" page
-          try {
-            const recentOrders = JSON.parse(localStorage.getItem('guestOrders') || '[]')
-            const orderInfo = {
-              orderNumber: orderNumber,
-              timestamp: new Date().toISOString(),
-              paymentId: paymentId || paymentLinkId || 'completed'
-            }
-            // Add to beginning of array, keep last 10 orders only
-            recentOrders.unshift(orderInfo)
-            localStorage.setItem('guestOrders', JSON.stringify(recentOrders.slice(0, 10)))
-            console.log('✅ Order saved to guest orders history')
-          } catch (e) {
-            console.warn('Could not save to guest orders:', e)
-          }
+          console.log('✅ Cart cleared after successful payment')
+          console.log('✅ Order saved to database - visible in My Orders')
         } catch (e) {
           console.warn('Could not clear cart:', e)
         }
@@ -159,7 +143,7 @@ export default function PaymentSuccessPage() {
                   <p className="text-xs text-gray-600">
                     <strong className="text-primary-brown">📝 Save your order number!</strong>
                     <br />
-                    As a guest, you can track your order status by contacting us with your order number and email address.
+                    You can track your order anytime in "My Orders" section or contact us with your order number.
                   </p>
                 </div>
               </div>
@@ -190,6 +174,13 @@ export default function PaymentSuccessPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link 
+                href="/orders"
+                className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+              >
+                📦 View My Orders
+              </Link>
+              
               <Link 
                 href="/collections"
                 className="bg-primary-brown text-white px-8 py-3 rounded-lg font-medium hover:bg-dark-brown transition-colors"
