@@ -18,7 +18,9 @@ export default function OrdersPage() {
     console.log('🔄 Orders page - Auth status:', {
       authLoading,
       userExists: !!user,
-      userEmail: user?.email
+      userEmail: user?.email,
+      tokenExists: !!localStorage.getItem('auth_token'),
+      userDataExists: !!localStorage.getItem('user_data')
     })
     
     // Wait for auth to finish loading
@@ -27,9 +29,28 @@ export default function OrdersPage() {
       return
     }
     
-    // If not logged in after auth loaded, redirect to login
+    // If not logged in after auth loaded, give it a bit more time
     if (!user) {
-      console.log('❌ No user found, redirecting to login')
+      console.warn('⚠️ No user found on orders page')
+      
+      // Check if we have a token but no user (session restoration in progress)
+      const hasToken = !!localStorage.getItem('auth_token')
+      const userData = localStorage.getItem('user_data')
+      
+      if (hasToken || userData) {
+        console.log('🔄 Token/userData exists, waiting for auth context to update...')
+        // Give auth context time to restore - don't redirect immediately
+        setTimeout(() => {
+          // Check again after delay
+          if (!user) {
+            console.log('❌ Still no user after delay, redirecting to login')
+            router.push('/auth/login')
+          }
+        }, 1500) // Wait 1.5 seconds before redirecting
+        return
+      }
+      
+      console.log('❌ No token or user data, redirecting to login')
       router.push('/auth/login')
       return
     }

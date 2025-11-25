@@ -10,22 +10,33 @@ export default function PaymentSuccessPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [orderDetails, setOrderDetails] = useState(null)
-  const { refreshUser } = useAuth()
+  const [sessionRestored, setSessionRestored] = useState(false)
+  const { refreshUser, user } = useAuth()
   
   // Force refresh user session after payment redirect
   useEffect(() => {
     const restoreSession = async () => {
       try {
         console.log('🔄 Payment Success - Restoring user session...')
-        await refreshUser()
-        console.log('✅ User session restored after payment')
+        
+        // Check if we have a token
+        const token = localStorage.getItem('auth_token')
+        console.log('Token exists:', !!token)
+        
+        if (token) {
+          await refreshUser()
+          console.log('✅ User session restored after payment')
+        } else {
+          console.warn('⚠️ No auth token found - user might be guest')
+        }
       } catch (error) {
-        console.warn('⚠️ Could not restore session (user might be guest):', error)
-        // Continue anyway - guest orders are fine
+        console.warn('⚠️ Could not restore session:', error)
+      } finally {
+        setSessionRestored(true)
       }
     }
     restoreSession()
-  }, [])
+  }, [refreshUser])
 
   useEffect(() => {
     const updateOrderStatus = async () => {
@@ -189,11 +200,29 @@ export default function PaymentSuccessPage() {
               </ul>
             </div>
 
+            {/* Session Status Indicator */}
+            {!sessionRestored && (
+              <div className="mb-4 text-center">
+                <div className="inline-flex items-center gap-2 text-sm text-gray-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-brown"></div>
+                  Restoring your session...
+                </div>
+              </div>
+            )}
+            
+            {sessionRestored && user && (
+              <div className="mb-4 text-center">
+                <p className="text-sm text-green-600">
+                  ✅ Logged in as: {user.email}
+                </p>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/orders"
-                className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                className={`bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors text-center ${!sessionRestored ? 'opacity-50 pointer-events-none' : ''}`}
               >
                 📦 View My Orders
               </Link>
