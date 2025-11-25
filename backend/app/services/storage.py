@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 # Check if Cloudinary is properly configured
 CLOUDINARY_CONFIGURED = (
+    settings.cloudinary_cloud_name and 
+    settings.cloudinary_api_key and 
+    settings.cloudinary_api_secret and
     settings.cloudinary_cloud_name != "demo" and 
     settings.cloudinary_api_key != "demo_key" and 
     settings.cloudinary_api_secret != "demo_secret"

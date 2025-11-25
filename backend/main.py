@@ -13,7 +13,7 @@ import logging
 import time
 import uuid
 
-from app.config import settings, CORS_ORIGINS
+from app.config import settings, CORS_ORIGINS, CORS_ORIGIN_REGEX
 from app.database import check_db_connection
 from app.routers import auth, products, cart, orders, payments, company, products_fixed, products_detail, razorpay_link, guest_orders, products_dashboard, admin_reset, payment_links
 import uvicorn
@@ -287,12 +287,18 @@ app.include_router(payment_links.router)
 
 # Serve uploaded files
 import os
-uploads_dir = "./uploads"
-if os.path.exists(uploads_dir):
-    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
-    logger.info("Static file serving enabled for uploads")
-else:
-    logger.warning("Uploads directory not found - will be created on first upload")
+from pathlib import Path
+
+# Ensure uploads directory exists
+uploads_dir = Path("./uploads")
+uploads_dir.mkdir(exist_ok=True)
+(uploads_dir / "products").mkdir(exist_ok=True)
+(uploads_dir / "profiles").mkdir(exist_ok=True)
+(uploads_dir / "reviews").mkdir(exist_ok=True)
+
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
+logger.info(f"Static file serving enabled for uploads at {uploads_dir.absolute()}")
 
 @app.on_event("startup")
 async def startup_event():
@@ -300,6 +306,7 @@ async def startup_event():
     logger.info("Starting ShopAll API...")
     logger.info(f"Environment: {settings.environment}")
     logger.info(f"Debug mode: {settings.debug}")
+    logger.info("Uploads directory initialized and ready")
     
     # Create database tables if they don't exist
     try:
