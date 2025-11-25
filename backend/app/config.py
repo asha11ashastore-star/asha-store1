@@ -19,10 +19,26 @@ class Settings:
         self.razorpay_key_secret = os.getenv("RAZORPAY_KEY_SECRET")
         self.razorpay_webhook_secret = os.getenv("RAZORPAY_WEBHOOK_SECRET")
         
-        # Cloudinary
-        self.cloudinary_cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
-        self.cloudinary_api_key = os.getenv("CLOUDINARY_API_KEY")
-        self.cloudinary_api_secret = os.getenv("CLOUDINARY_API_SECRET")
+        # Cloudinary - support both URL format and separate vars
+        cloudinary_url = os.getenv("CLOUDINARY_URL")
+        if cloudinary_url:
+            # Parse cloudinary://api_key:api_secret@cloud_name
+            try:
+                from urllib.parse import urlparse
+                parsed = urlparse(cloudinary_url)
+                self.cloudinary_cloud_name = parsed.hostname
+                self.cloudinary_api_key = parsed.username
+                self.cloudinary_api_secret = parsed.password
+            except Exception as e:
+                print(f"Error parsing CLOUDINARY_URL: {e}")
+                self.cloudinary_cloud_name = None
+                self.cloudinary_api_key = None
+                self.cloudinary_api_secret = None
+        else:
+            # Fallback to separate environment variables
+            self.cloudinary_cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+            self.cloudinary_api_key = os.getenv("CLOUDINARY_API_KEY")
+            self.cloudinary_api_secret = os.getenv("CLOUDINARY_API_SECRET")
         
         # SendGrid
         self.sendgrid_api_key = os.getenv("SENDGRID_API_KEY")
