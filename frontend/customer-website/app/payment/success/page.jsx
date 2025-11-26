@@ -13,29 +13,39 @@ export default function PaymentSuccessPage() {
   const [sessionRestored, setSessionRestored] = useState(false)
   const { refreshUser, user } = useAuth()
   
-  // Force refresh user session after payment redirect
+  // Check session status after payment redirect
   useEffect(() => {
-    const restoreSession = async () => {
+    const checkSession = async () => {
       try {
-        console.log('🔄 Payment Success - Restoring user session...')
+        console.log('🔄 Payment Success - Checking user session...')
         
-        // Check if we have a token
         const token = localStorage.getItem('auth_token')
-        console.log('Token exists:', !!token)
+        const savedUser = localStorage.getItem('user_data')
         
-        if (token) {
-          await refreshUser()
-          console.log('✅ User session restored after payment')
+        console.log('Token exists:', !!token, '| SavedUser exists:', !!savedUser)
+        
+        if (token && savedUser) {
+          // Try to refresh user data from API
+          try {
+            await refreshUser()
+            console.log('✅ User session verified with API')
+          } catch (error) {
+            console.warn('⚠️ API check failed, but user data exists in localStorage')
+            // Don't worry - AuthContext will handle restoration
+          }
         } else {
-          console.warn('⚠️ No auth token found - user might be guest')
+          console.log('ℹ️ Guest checkout - no user session')
         }
       } catch (error) {
-        console.warn('⚠️ Could not restore session:', error)
+        console.warn('⚠️ Session check error:', error)
       } finally {
         setSessionRestored(true)
       }
     }
-    restoreSession()
+    
+    // Small delay to let AuthContext initialize first
+    const timer = setTimeout(checkSession, 500)
+    return () => clearTimeout(timer)
   }, [refreshUser])
 
   useEffect(() => {

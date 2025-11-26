@@ -29,35 +29,30 @@ export default function OrdersPage() {
       return
     }
     
-    // If not logged in after auth loaded, give it a bit more time
-    if (!user) {
-      console.warn('⚠️ No user found on orders page')
-      
-      // Check if we have a token but no user (session restoration in progress)
-      const hasToken = !!localStorage.getItem('auth_token')
-      const userData = localStorage.getItem('user_data')
-      
-      if (hasToken || userData) {
-        console.log('🔄 Token/userData exists, waiting for auth context to update...')
-        // Give auth context time to restore - don't redirect immediately
-        setTimeout(() => {
-          // Check again after delay
-          if (!user) {
-            console.log('❌ Still no user after delay, redirecting to login')
-            router.push('/auth/login')
-          }
-        }, 1500) // Wait 1.5 seconds before redirecting
-        return
-      }
-      
+    // If user is logged in, fetch orders
+    if (user) {
+      console.log('✅ User logged in, fetching orders for:', user.email)
+      fetchOrders()
+      return
+    }
+    
+    // No user - check if we should wait or redirect
+    console.warn('⚠️ No user found on orders page')
+    
+    // Check if we have auth data that might restore soon
+    const hasToken = !!localStorage.getItem('auth_token')
+    const userData = localStorage.getItem('user_data')
+    
+    if (!hasToken && !userData) {
+      // Definitely not logged in - redirect immediately
       console.log('❌ No token or user data, redirecting to login')
       router.push('/auth/login')
       return
     }
     
-    // If logged in, fetch their orders from database
-    console.log('✅ User logged in, fetching orders for:', user.email)
-    fetchOrders()
+    // We have token/data, so wait a bit for context to restore
+    console.log('🔄 Token/userData exists, giving auth context time to restore...')
+    
   }, [user, authLoading, router])
 
   const fetchOrders = async () => {

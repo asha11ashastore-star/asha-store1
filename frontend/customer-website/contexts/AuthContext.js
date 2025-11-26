@@ -13,32 +13,45 @@ export function AuthProvider({ children }) {
     const checkAuthStatus = async () => {
       try {
         const token = apiService.getToken()
-        console.log('🔐 Auth check - Token exists:', !!token)
+        const savedUser = localStorage.getItem('user_data')
         
+        console.log('🔐 Auth check - Token exists:', !!token, '| SavedUser exists:', !!savedUser)
+        
+        // If we have saved user data, restore it immediately (optimistic)
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser)
+            setUser(parsedUser)
+            console.log('✅ User restored from localStorage:', parsedUser.email)
+          } catch (e) {
+            console.error('❌ Failed to parse saved user data')
+            localStorage.removeItem('user_data')
+          }
+        }
+        
+        // Then verify with API if we have a token
         if (token) {
-          const userData = await apiService.getCurrentUser()
-          setUser(userData)
-          console.log('✅ User authenticated:', userData.email)
-          
-          // Store user data in localStorage as backup
-          localStorage.setItem('user_data', JSON.stringify(userData))
-        } else {
-          // Try to restore from localStorage backup
-          const savedUser = localStorage.getItem('user_data')
-          if (savedUser) {
-            console.log('⚠️ No token but found saved user, attempting restore')
-            setUser(JSON.parse(savedUser))
+          try {
+            const userData = await apiService.getCurrentUser()
+            setUser(userData)
+            console.log('✅ User verified with API:', userData.email)
+            
+            // Update localStorage with fresh data
+            localStorage.setItem('user_data', JSON.stringify(userData))
+          } catch (apiError) {
+            console.error('❌ API verification failed:', apiError)
+            // If 401, token is invalid - clear everything
+            if (apiError.message.includes('401') || apiError.message.includes('Unauthorized')) {
+              console.log('🔐 Token invalid, clearing session')
+              apiService.logout()
+              localStorage.removeItem('user_data')
+              setUser(null)
+            }
+            // Otherwise keep the saved user data (network issue)
           }
         }
       } catch (error) {
         console.error('❌ Auth check failed:', error)
-        // Don't clear token immediately - might be temporary network issue
-        // Only clear if 401 unauthorized
-        if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-          apiService.logout()
-          localStorage.removeItem('user_data')
-          setUser(null)
-        }
       } finally {
         setIsLoading(false)
       }
