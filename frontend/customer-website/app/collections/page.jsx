@@ -22,13 +22,15 @@ function CollectionsContent() {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}/api/v1/products`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}/api/v1/products-fixed`)
         if (response.ok) {
           const data = await response.json()
           setProducts(data.items || data || [])
+        } else {
+          console.error('Failed to fetch products:', response.status, response.statusText)
         }
       } catch (error) {
-        console.error('Error:', error)
+        console.error('Error fetching products:', error)
       } finally {
         setLoading(false)
       }
