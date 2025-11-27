@@ -21,8 +21,12 @@ function AppContent() {
     );
   }
 
+  // Support subdirectory deployment (e.g., /seller/)
+  // Read basename from environment or use default
+  const basename = process.env.PUBLIC_URL || '';
+
   return (
-    <Router>
+    <Router basename={basename}>
       <div className="App">
         <Routes>
           <Route 

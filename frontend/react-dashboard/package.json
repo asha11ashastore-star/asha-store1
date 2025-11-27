@@ -23,6 +23,7 @@
   "scripts": {
     "start": "PORT=3000 react-scripts start",
     "build": "react-scripts build",
+    "build:subdirectory": "PUBLIC_URL=/seller react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
