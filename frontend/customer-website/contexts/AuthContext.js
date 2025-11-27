@@ -22,23 +22,30 @@ export function AuthProvider({ children }) {
         if (token) {
           try {
             console.log('🔍 Token found - verifying with API...')
+            console.log('   Token (first 10 chars):', token.substring(0, 10) + '...')
+            
             const userData = await apiService.getCurrentUser()
-            setUser(userData)
+            
             console.log('✅ User verified with API:', userData.email)
+            console.log('   User ID:', userData.id)
+            console.log('   Username:', userData.username)
+            
+            setUser(userData)
             
             // Update localStorage with fresh, verified data
             localStorage.setItem('user_data', JSON.stringify(userData))
+            console.log('💾 Updated localStorage with verified user:', userData.email)
             
             // Check if localStorage had different user (security issue!)
             if (savedUser) {
               try {
                 const oldUser = JSON.parse(savedUser)
                 if (oldUser.email !== userData.email) {
-                  console.warn('⚠️ SECURITY: localStorage had different user!', {
-                    localStorage: oldUser.email,
-                    apiVerified: userData.email
-                  })
-                  console.log('✅ Fixed: Using API-verified user')
+                  console.warn('⚠️ SECURITY WARNING: localStorage had DIFFERENT user!')
+                  console.warn('   localStorage had:', oldUser.email)
+                  console.warn('   API verified:', userData.email)
+                  console.warn('   This means auth data was stale!')
+                  console.log('✅ FIXED: Using API-verified user:', userData.email)
                 }
               } catch (e) {
                 // Ignore parse errors
@@ -90,17 +97,48 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
+      console.log('🔐 LOGIN ATTEMPT:', email)
+      
+      // STEP 1: Clear ALL previous auth data first
+      console.log('🧹 Clearing all previous auth data...')
+      localStorage.removeItem('user_data')
+      localStorage.removeItem('auth_token')
+      apiService.setToken(null)
+      setUser(null)
+      
+      // STEP 2: Login and get NEW token
+      console.log('📡 Calling login API...')
       const response = await apiService.login(email, password)
+      console.log('✅ Login API response received, token:', response.access_token ? 'YES' : 'NO')
+      
+      // STEP 3: Get user data with NEW token
+      console.log('📡 Fetching user data with new token...')
       const userData = await apiService.getCurrentUser()
+      console.log('✅ User data received:', userData.email)
+      
+      // STEP 4: Verify email matches what we logged in with
+      if (userData.email.toLowerCase() !== email.toLowerCase()) {
+        console.error('❌ SECURITY ERROR: Logged in as different user!')
+        console.error('   Expected:', email)
+        console.error('   Got:', userData.email)
+        throw new Error('Authentication mismatch - please try again')
+      }
+      
+      // STEP 5: Set user in state
       setUser(userData)
       
-      // Store user data in localStorage for persistence
+      // STEP 6: Store VERIFIED user data in localStorage
       localStorage.setItem('user_data', JSON.stringify(userData))
-      console.log('✅ User logged in:', userData.email)
+      console.log('✅ User logged in and verified:', userData.email)
+      console.log('💾 Saved to localStorage:', userData.email)
       
       return { success: true, user: userData }
     } catch (error) {
       console.error('❌ Login failed:', error)
+      // Clean up on error
+      localStorage.removeItem('user_data')
+      localStorage.removeItem('auth_token')
+      setUser(null)
       throw error
     }
   }
@@ -116,12 +154,27 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
+      console.log('🚪 LOGOUT - Clearing all auth data...')
+      const currentUser = user?.email || 'unknown'
+      
+      // Clear API token
       await apiService.logout()
+      
+      // Clear ALL localStorage auth data
       localStorage.removeItem('user_data')
+      localStorage.removeItem('auth_token')
+      
+      // Clear state
       setUser(null)
-      console.log('✅ User logged out')
+      
+      console.log('✅ User logged out:', currentUser)
+      console.log('🧹 All auth data cleared from localStorage')
     } catch (error) {
       console.error('Logout error:', error)
+      // Force clear even on error
+      localStorage.removeItem('user_data')
+      localStorage.removeItem('auth_token')
+      setUser(null)
     }
   }
 
