@@ -109,7 +109,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(50), unique=True, index=True, nullable=False)
     first_name = Column(String(50), nullable=False)
-    last_name = Column(String(50), nullable=False)
+    last_name = Column(String(50), nullable=True)  # Optional - allows single name users
     phone = Column(String(20), nullable=True)
     hashed_password = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.BUYER, nullable=False)
