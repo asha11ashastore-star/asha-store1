@@ -39,24 +39,52 @@ export default function SignupPage() {
       return
     }
 
+    if (!formData.name.trim()) {
+      setError('Please enter your full name')
+      return
+    }
+
     setLoading(true)
 
     try {
-      // Register the user
+      // Split name into first and last name
+      const nameParts = formData.name.trim().split(' ')
+      const firstName = nameParts[0] || 'User'
+      const lastName = nameParts.slice(1).join(' ') || ''
+      
+      // Generate username from email (part before @)
+      const username = formData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
+      
+      console.log('📝 Registering user:', {
+        username,
+        firstName,
+        lastName,
+        email: formData.email
+      })
+      
+      // Register the user with correct fields
       await register({
-        name: formData.name,
+        username: username,
+        first_name: firstName,
+        last_name: lastName,
         email: formData.email,
         password: formData.password,
         role: 'buyer'
       })
       
+      console.log('✅ Registration successful!')
+      
       // Auto-login after registration
       await login(formData.email, formData.password)
+      
+      console.log('✅ Login successful!')
       
       // Redirect to home after successful signup
       router.push('/')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to create account. Email may already be in use.')
+      console.error('❌ Registration error:', err)
+      const errorMessage = err?.message || err?.response?.data?.detail || 'Failed to create account. Please try again.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
