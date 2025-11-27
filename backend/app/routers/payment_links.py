@@ -171,7 +171,7 @@ async def create_payment_link(
                 "order_number": order_number,
                 "items": items_description
             },
-            "callback_url": f"https://customer-website-lovat.vercel.app/payment/success?order={order_number}",
+            "callback_url": f"https://customer-website-lovat.vercel.app/payment/success?order={order_number}&email={request.customer_email}",
             "callback_method": "get"
         }
         

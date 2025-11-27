@@ -40,40 +40,90 @@ export default function PaymentSuccessPage() {
         console.log('💳 PAYMENT SUCCESS PAGE - VERIFYING USER')
         console.log('💳 ========================================')
         
+        // CRITICAL: Check URL for customer email (from Razorpay callback)
+        const urlEmail = searchParams.get('email')
+        console.log('💳 Email from URL:', urlEmail || 'None')
+        
         let token = localStorage.getItem('auth_token')
         let savedUser = localStorage.getItem('user_data')
         
         console.log('💳 Token in localStorage:', !!token)
         console.log('💳 SavedUser in localStorage:', !!savedUser)
         
-        // CRITICAL: If localStorage is empty, restore from sessionStorage backup!
+        // CRITICAL: If localStorage is empty, try multiple restoration methods
         if (!token || !savedUser) {
-          console.log('⚠️ localStorage is empty! Checking sessionStorage backup...')
+          console.log('⚠️ localStorage is empty! Trying restoration methods...')
+          
+          // Method 1: Check sessionStorage backup
           const tokenBackup = sessionStorage.getItem('auth_token_backup')
           const userBackup = sessionStorage.getItem('user_data_backup')
           
           if (tokenBackup && userBackup) {
-            console.log('🔄 RESTORING from sessionStorage backup!')
+            console.log('🔄 METHOD 1: Restoring from sessionStorage backup!')
             token = tokenBackup
             savedUser = userBackup
             
             // Restore to localStorage
             localStorage.setItem('auth_token', token)
             localStorage.setItem('user_data', savedUser)
-            console.log('✅ RESTORED auth data from backup!')
+            console.log('✅ RESTORED auth data from sessionStorage!')
             console.log('✅ Restored user:', JSON.parse(savedUser).email)
             
             // Clear backup after restore
             sessionStorage.removeItem('auth_token_backup')
             sessionStorage.removeItem('user_data_backup')
-          } else {
-            console.log('❌ No backup found in sessionStorage either!')
+          } 
+          // Method 2: Check cookies for backup
+          else {
+            console.log('🔄 METHOD 2: Checking cookies for backup...')
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+              const [key, value] = cookie.trim().split('=')
+              acc[key] = value
+              return acc
+            }, {})
+            
+            const cookieToken = cookies['auth_backup_token']
+            const cookieUser = cookies['auth_backup_user']
+            const cookieEmail = cookies['auth_backup_email']
+            
+            if (cookieToken && cookieUser) {
+              console.log('✅ Found backup in cookies!')
+              token = cookieToken
+              savedUser = decodeURIComponent(cookieUser)
+              
+              // Restore to localStorage
+              localStorage.setItem('auth_token', token)
+              localStorage.setItem('user_data', savedUser)
+              console.log('✅ RESTORED auth data from cookies!')
+              console.log('✅ Restored user:', JSON.parse(savedUser).email)
+              
+              // Clear cookie backups
+              document.cookie = 'auth_backup_token=; path=/; max-age=0'
+              document.cookie = 'auth_backup_user=; path=/; max-age=0'
+              document.cookie = 'auth_backup_email=; path=/; max-age=0'
+            }
+            // Method 3: Check if email in URL
+            else if (urlEmail) {
+              console.log('🔄 METHOD 3: Trying to restore session for email:', urlEmail)
+              console.log('⚠️ No backup found - user needs to login again')
+              console.log('💡 TIP: User should login as:', urlEmail)
+              
+              // Store the email for display
+              sessionStorage.setItem('expected_login_email', urlEmail)
+            } 
+            else {
+              console.log('❌ No backup found in any method!')
+              console.log('❌ Cannot restore session - showing guest checkout')
+            }
           }
         } else {
           console.log('✅ Auth data exists in localStorage')
           // Clear any old backups
           sessionStorage.removeItem('auth_token_backup')
           sessionStorage.removeItem('user_data_backup')
+          document.cookie = 'auth_backup_token=; path=/; max-age=0'
+          document.cookie = 'auth_backup_user=; path=/; max-age=0'
+          document.cookie = 'auth_backup_email=; path=/; max-age=0'
         }
         
         if (token) {
@@ -390,12 +440,44 @@ export default function PaymentSuccessPage() {
             {sessionRestored && !isLoading && !user && (
               <div className="mb-4 text-center bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <div className="text-2xl mb-2">ℹ️</div>
-                <p className="text-base text-amber-700 font-semibold mb-2">
-                  Guest Checkout
-                </p>
-                <p className="text-sm text-gray-600">
-                  Order saved with your contact details
-                </p>
+                {(() => {
+                  const expectedEmail = sessionStorage.getItem('expected_login_email')
+                  if (expectedEmail) {
+                    return (
+                      <>
+                        <p className="text-base text-amber-700 font-semibold mb-2">
+                          Session Lost After Payment
+                        </p>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Your order was placed with: <strong>{expectedEmail}</strong>
+                        </p>
+                        <p className="text-sm text-gray-700 font-semibold mb-2">
+                          Please login to view your order:
+                        </p>
+                        <button
+                          onClick={() => {
+                            sessionStorage.setItem('redirect_after_login', '/orders')
+                            window.location.href = '/auth/login'
+                          }}
+                          className="mt-2 bg-primary-brown text-white px-6 py-2 rounded-lg hover:bg-brown-700 transition-colors"
+                        >
+                          Login as {expectedEmail}
+                        </button>
+                      </>
+                    )
+                  } else {
+                    return (
+                      <>
+                        <p className="text-base text-amber-700 font-semibold mb-2">
+                          Guest Checkout
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Order saved with your contact details
+                        </p>
+                      </>
+                    )
+                  }
+                })()}
               </div>
             )}
 

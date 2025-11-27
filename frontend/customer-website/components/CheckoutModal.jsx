@@ -133,26 +133,35 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
           price: parseFloat(item.price.toString().replace(/[^0-9.]/g, ''))
         })),
         total_amount: totalAmount,
-        notes: 'Payment via Razorpay Payment Link'
+        notes: 'Payment via Razorpay Payment Link',
+        // CRITICAL: Include auth token for session restoration
+        auth_token: localStorage.getItem('auth_token') || null
       }
 
       console.log('Creating Razorpay Payment Link (amount will be LOCKED)...')
       console.log('Order data:', orderData)
       
-      // CRITICAL: Save auth token and user to sessionStorage BEFORE redirect
-      // This ensures we can restore session even if localStorage gets cleared
+      // CRITICAL: Multiple backup methods for session restoration
       const token = localStorage.getItem('auth_token')
       const userData = localStorage.getItem('user_data')
+      
       if (token && userData) {
-        console.log('💾 BACKUP: Saving auth data to sessionStorage before payment...')
+        // Method 1: sessionStorage backup
+        console.log('💾 BACKUP METHOD 1: Saving to sessionStorage...')
         sessionStorage.setItem('auth_token_backup', token)
         sessionStorage.setItem('user_data_backup', userData)
-        console.log('💾 BACKUP: Saved user:', JSON.parse(userData).email)
+        sessionStorage.setItem('last_order_email', verifiedEmail)
+        console.log('💾 Saved user:', JSON.parse(userData).email)
+        
+        // Method 2: Also save to cookies as extra backup (survives redirects better)
+        console.log('💾 BACKUP METHOD 2: Saving to cookies...')
+        document.cookie = `auth_backup_token=${token}; path=/; max-age=3600; SameSite=Lax`
+        document.cookie = `auth_backup_user=${encodeURIComponent(userData)}; path=/; max-age=3600; SameSite=Lax`
+        document.cookie = `auth_backup_email=${verifiedEmail}; path=/; max-age=3600; SameSite=Lax`
+        console.log('💾 Saved to cookies (expires in 1 hour)')
+      } else {
+        console.log('⚠️ No auth data to backup - guest checkout')
       }
-      
-      // EXTRA BACKUP: Save order email too
-      sessionStorage.setItem('last_order_email', verifiedEmail)
-      console.log('💾 BACKUP: Saved order email:', verifiedEmail)
 
       // Create Razorpay Payment Link (LOCKED AMOUNT)
       const paymentLinkResponse = await fetch(`${API_BASE_URL}/api/v1/payment-links/create`, {
