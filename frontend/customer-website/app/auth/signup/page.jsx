@@ -34,8 +34,8 @@ export default function SignupPage() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters')
       return
     }
 
@@ -50,7 +50,7 @@ export default function SignupPage() {
       // Split name into first and last name
       const nameParts = formData.name.trim().split(' ')
       const firstName = nameParts[0] || 'User'
-      const lastName = nameParts.slice(1).join(' ') || ''
+      const lastName = nameParts.slice(1).join(' ').trim() || null  // null if no last name
       
       // Generate username from email (part before @)
       const username = formData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -58,19 +58,25 @@ export default function SignupPage() {
       console.log('📝 Registering user:', {
         username,
         firstName,
-        lastName,
+        lastName: lastName || '(none)',
         email: formData.email
       })
       
       // Register the user with correct fields
-      await register({
+      const registrationData = {
         username: username,
         first_name: firstName,
-        last_name: lastName,
         email: formData.email,
         password: formData.password,
         role: 'buyer'
-      })
+      }
+      
+      // Only add last_name if it exists
+      if (lastName) {
+        registrationData.last_name = lastName
+      }
+      
+      await register(registrationData)
       
       console.log('✅ Registration successful!')
       
@@ -153,7 +159,7 @@ export default function SignupPage() {
                   value={formData.password}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brown focus:border-transparent"
-                  placeholder="At least 6 characters"
+                  placeholder="At least 8 characters"
                 />
               </div>
 

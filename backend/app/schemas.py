@@ -15,7 +15,7 @@ class UserBase(BaseSchema):
     email: EmailStr
     username: str = Field(..., min_length=3, max_length=50)
     first_name: str = Field(..., min_length=1, max_length=50)
-    last_name: str = Field(..., min_length=1, max_length=50)
+    last_name: Optional[str] = Field(None, max_length=50)  # Optional - allows single name users
     phone: Optional[str] = Field(None, max_length=20)
     role: UserRole = UserRole.BUYER
 
