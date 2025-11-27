@@ -30,11 +30,21 @@ export default function ProductDetailPage() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`${API_BASE_URL}/api/v1/products/${id}`)
+      // Add cache-busting and no-cache headers
+      const timestamp = new Date().getTime()
+      const response = await fetch(`${API_BASE_URL}/api/v1/products/${id}?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       
       if (response.ok) {
         const productData = await response.json()
-        console.log('Fetched product:', productData)
+        console.log('✅ Fetched FRESH product data:', productData)
+        console.log('📦 Available sizes:', productData.available_sizes)
         setProduct(productData)
       } else if (response.status === 404) {
         setError('Product not found')
@@ -42,7 +52,7 @@ export default function ProductDetailPage() {
         setError('Failed to load product')
       }
     } catch (error) {
-      console.error('Error fetching product:', error)
+      console.error('❌ Error fetching product:', error)
       setError('Failed to load product')
     } finally {
       setLoading(false)

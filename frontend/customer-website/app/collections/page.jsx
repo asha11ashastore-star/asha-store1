@@ -22,15 +22,30 @@ function CollectionsContent() {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}/api/v1/products-fixed`)
+        
+        // Add cache-busting and no-cache headers
+        const timestamp = new Date().getTime()
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}/api/v1/products-fixed?_t=${timestamp}`,
+          {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          }
+        )
+        
         if (response.ok) {
           const data = await response.json()
+          console.log('✅ Fetched FRESH products:', data.items?.length || data.length || 0, 'products')
           setProducts(data.items || data || [])
         } else {
-          console.error('Failed to fetch products:', response.status, response.statusText)
+          console.error('❌ Failed to fetch products:', response.status, response.statusText)
         }
       } catch (error) {
-        console.error('Error fetching products:', error)
+        console.error('❌ Error fetching products:', error)
       } finally {
         setLoading(false)
       }

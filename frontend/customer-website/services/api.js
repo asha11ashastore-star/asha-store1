@@ -27,12 +27,19 @@ class ApiService {
   }
 
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`
+    // Add timestamp for cache-busting
+    const separator = endpoint.includes('?') ? '&' : '?'
+    const timestamp = new Date().getTime()
+    const url = `${this.baseURL}${endpoint}${separator}_t=${timestamp}`
     const token = this.getToken()
     
     const config = {
+      cache: 'no-store',  // Prevent Next.js caching
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
         ...options.headers,
       },
       ...options,
