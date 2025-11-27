@@ -32,7 +32,7 @@ export default function ProductDetailPage() {
       
       // Add cache-busting and no-cache headers
       const timestamp = new Date().getTime()
-      const response = await fetch(`${API_BASE_URL}/api/v1/products/${id}?_t=${timestamp}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/products-fixed/${id}?_t=${timestamp}`, {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -192,15 +192,24 @@ export default function ProductDetailPage() {
   // Get available sizes from product
   const getAvailableSizes = () => {
     try {
+      // First check the top-level available_sizes field (from backend)
+      if (product?.available_sizes && Array.isArray(product.available_sizes)) {
+        console.log('✅ Using available_sizes from API:', product.available_sizes)
+        return product.available_sizes
+      }
+      
+      // Fallback to parsing tags
       if (product?.tags) {
         const tags = typeof product.tags === 'string' ? JSON.parse(product.tags) : product.tags
         if (tags?.available_sizes && Array.isArray(tags.available_sizes)) {
+          console.log('✅ Using available_sizes from tags:', tags.available_sizes)
           return tags.available_sizes
         }
       }
     } catch (e) {
-      console.error('Error parsing sizes:', e)
+      console.error('❌ Error parsing sizes:', e)
     }
+    console.log('⚠️ No available_sizes found')
     return []
   }
   
@@ -357,7 +366,8 @@ export default function ProductDetailPage() {
             {/* Size Selection */}
             {(() => {
               const availableSizes = getAvailableSizes()
-              const allSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']
+              
+              console.log('🎯 Product available sizes:', availableSizes)
               
               if (availableSizes.length > 0) {
                 return (
@@ -366,27 +376,21 @@ export default function ProductDetailPage() {
                       Select Size: *
                     </label>
                     <div className="flex flex-wrap gap-3">
-                      {allSizes.map((size) => {
-                        const isAvailable = availableSizes.includes(size)
+                      {availableSizes.map((size) => {
                         const isSelected = selectedSize === size
                         
                         return (
                           <button
                             key={size}
                             onClick={() => {
-                              if (isAvailable) {
-                                setSelectedSize(size)
-                                setSizeError('')
-                              }
+                              setSelectedSize(size)
+                              setSizeError('')
                             }}
-                            disabled={!isAvailable}
                             className={`
                               px-6 py-3 min-w-[70px] border-2 rounded-lg font-semibold text-sm transition-all
-                              ${isAvailable
-                                ? isSelected
-                                  ? 'border-primary-brown bg-primary-brown text-white'
-                                  : 'border-gray-300 hover:border-primary-brown hover:bg-primary-brown/10'
-                                : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed line-through'
+                              ${isSelected
+                                ? 'border-primary-brown bg-primary-brown text-white'
+                                : 'border-gray-300 hover:border-primary-brown hover:bg-primary-brown/10'
                               }
                             `}
                           >
