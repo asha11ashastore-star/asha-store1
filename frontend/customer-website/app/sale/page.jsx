@@ -89,29 +89,38 @@ export default function SalePage() {
               const discount = Math.round((1 - parseFloat(product.discounted_price) / parseFloat(product.price)) * 100)
               
               return (
-                <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative cursor-pointer">
+                <div 
+                  key={product.id} 
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative"
+                >
                   {/* Sale Badge */}
                   <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold z-10">
                     SALE {discount}% OFF
                   </div>
                   
-                  {/* Product Image */}
+                  {/* Product Image - Clickable */}
                   <div 
-                    className="h-64 bg-gradient-to-br from-beige-100 to-beige-200 flex items-center justify-center"
+                    className="h-64 bg-gradient-to-br from-beige-100 to-beige-200 flex items-center justify-center cursor-pointer"
                     onClick={() => router.push(`/product/${product.id}`)}
                   >
-                    {product.images && product.images.length > 0 ? (
-                      <img 
-                        src={product.images[0]} 
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-gray-400 text-center">
-                        <div className="text-4xl mb-2">👗</div>
-                        <div className="text-xs">No Image</div>
-                      </div>
-                    )}
+                    <img 
+                      src={
+                        product.primary_image?.startsWith('http') 
+                          ? product.primary_image 
+                          : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}${product.primary_image || '/uploads/placeholder.jpg'}`
+                      }
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                        e.target.parentElement.innerHTML = `
+                          <div class="text-gray-400 text-center">
+                            <div class="text-4xl mb-2">👗</div>
+                            <div class="text-xs">No Image</div>
+                          </div>
+                        `
+                      }}
+                    />
                   </div>
                   
                   <div className="p-4">
