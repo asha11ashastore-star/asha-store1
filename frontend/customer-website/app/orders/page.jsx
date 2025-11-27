@@ -13,6 +13,8 @@ export default function OrdersPage() {
   const [guestOrders, setGuestOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authCheckComplete, setAuthCheckComplete] = useState(false)
+  const [waitingForRestore, setWaitingForRestore] = useState(false)
 
   useEffect(() => {
     console.log('🔄 Orders page - Auth status:', {
@@ -32,6 +34,7 @@ export default function OrdersPage() {
     // If user is logged in, fetch orders
     if (user) {
       console.log('✅ User logged in, fetching orders for:', user.email)
+      setAuthCheckComplete(true)
       fetchOrders()
       return
     }
@@ -50,10 +53,24 @@ export default function OrdersPage() {
       return
     }
     
-    // We have token/data, so wait a bit for context to restore
-    console.log('🔄 Token/userData exists, giving auth context time to restore...')
+    // We have token/data, so wait longer for context to restore (especially after payment redirect)
+    if (!authCheckComplete && !waitingForRestore) {
+      console.log('🔄 Token/userData exists, waiting 3 seconds for auth context to restore...')
+      setWaitingForRestore(true)
+      
+      const restoreTimer = setTimeout(() => {
+        setAuthCheckComplete(true)
+        // Check one more time after waiting
+        if (!user) {
+          console.log('❌ Auth did not restore after 3 seconds, redirecting to login')
+          router.push('/auth/login')
+        }
+      }, 3000) // Wait 3 seconds for auth to restore after payment redirect
+      
+      return () => clearTimeout(restoreTimer)
+    }
     
-  }, [user, authLoading, router])
+  }, [user, authLoading, router, authCheckComplete, waitingForRestore])
 
   const fetchOrders = async () => {
     try {
@@ -105,14 +122,16 @@ export default function OrdersPage() {
     return colors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800'
   }
 
-  if (authLoading || loading) {
+  if (authLoading || loading || waitingForRestore) {
     return (
       <div className="min-h-screen bg-warm-white">
         <Header />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center py-16">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-beige-600 mx-auto mb-4"></div>
-            <p className="text-beige-600">Loading your orders...</p>
+            <p className="text-beige-600">
+              {waitingForRestore ? 'Restoring your session after payment...' : 'Loading your orders...'}
+            </p>
           </div>
         </div>
         <Footer />

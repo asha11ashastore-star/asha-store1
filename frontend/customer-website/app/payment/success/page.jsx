@@ -29,6 +29,9 @@ export default function PaymentSuccessPage() {
           try {
             await refreshUser()
             console.log('✅ User session verified with API')
+            
+            // Give extra time for AuthContext to fully restore
+            await new Promise(resolve => setTimeout(resolve, 1000))
           } catch (error) {
             console.warn('⚠️ API check failed, but user data exists in localStorage')
             // Don't worry - AuthContext will handle restoration
@@ -43,8 +46,8 @@ export default function PaymentSuccessPage() {
       }
     }
     
-    // Small delay to let AuthContext initialize first
-    const timer = setTimeout(checkSession, 500)
+    // Longer delay after payment redirect to ensure AuthContext fully initializes
+    const timer = setTimeout(checkSession, 1500)
     return () => clearTimeout(timer)
   }, [refreshUser])
 
