@@ -40,11 +40,41 @@ export default function PaymentSuccessPage() {
         console.log('💳 PAYMENT SUCCESS PAGE - VERIFYING USER')
         console.log('💳 ========================================')
         
-        const token = localStorage.getItem('auth_token')
-        const savedUser = localStorage.getItem('user_data')
+        let token = localStorage.getItem('auth_token')
+        let savedUser = localStorage.getItem('user_data')
         
-        console.log('💳 Token exists:', !!token)
-        console.log('💳 SavedUser exists:', !!savedUser)
+        console.log('💳 Token in localStorage:', !!token)
+        console.log('💳 SavedUser in localStorage:', !!savedUser)
+        
+        // CRITICAL: If localStorage is empty, restore from sessionStorage backup!
+        if (!token || !savedUser) {
+          console.log('⚠️ localStorage is empty! Checking sessionStorage backup...')
+          const tokenBackup = sessionStorage.getItem('auth_token_backup')
+          const userBackup = sessionStorage.getItem('user_data_backup')
+          
+          if (tokenBackup && userBackup) {
+            console.log('🔄 RESTORING from sessionStorage backup!')
+            token = tokenBackup
+            savedUser = userBackup
+            
+            // Restore to localStorage
+            localStorage.setItem('auth_token', token)
+            localStorage.setItem('user_data', savedUser)
+            console.log('✅ RESTORED auth data from backup!')
+            console.log('✅ Restored user:', JSON.parse(savedUser).email)
+            
+            // Clear backup after restore
+            sessionStorage.removeItem('auth_token_backup')
+            sessionStorage.removeItem('user_data_backup')
+          } else {
+            console.log('❌ No backup found in sessionStorage either!')
+          }
+        } else {
+          console.log('✅ Auth data exists in localStorage')
+          // Clear any old backups
+          sessionStorage.removeItem('auth_token_backup')
+          sessionStorage.removeItem('user_data_backup')
+        }
         
         if (token) {
           console.log('💳 Token found (first 10 chars):', token.substring(0, 10) + '...')
@@ -107,8 +137,47 @@ export default function PaymentSuccessPage() {
           console.log('💳 ℹ️ No token - Guest checkout')
         }
         
+        // CRITICAL: Verify user matches order email
+        const orderEmail = sessionStorage.getItem('last_order_email')
+        if (orderEmail && user) {
+          console.log('🔍 VERIFICATION: Order email:', orderEmail)
+          console.log('🔍 VERIFICATION: Displayed user:', user.email)
+          
+          if (orderEmail !== user.email) {
+            console.error('🚨 CRITICAL: USER MISMATCH!')
+            console.error('🚨 Order was for:', orderEmail)
+            console.error('🚨 But showing user:', user.email)
+            console.error('🚨 This is THE BUG the user reported!')
+            
+            // Try to fix by finding correct user in backup
+            const userBackup = sessionStorage.getItem('user_data_backup')
+            if (userBackup) {
+              try {
+                const backupUser = JSON.parse(userBackup)
+                if (backupUser.email === orderEmail) {
+                  console.log('✅ Found correct user in backup! Restoring...')
+                  localStorage.setItem('user_data', userBackup)
+                  // Force page reload to trigger AuthContext refresh
+                  console.log('🔄 Reloading page to fix user mismatch...')
+                  setTimeout(() => window.location.reload(), 100)
+                }
+              } catch (e) {
+                console.error('Failed to restore from backup:', e)
+              }
+            } else {
+              console.error('❌ No backup available to fix mismatch!')
+              console.error('❌ Please refresh the page manually')
+            }
+          } else {
+            console.log('✅ VERIFICATION PASSED: User matches order!')
+          }
+        }
+        
         console.log('💳 ========================================')
         console.log('💳 FINAL USER:', user?.email || 'No user')
+        if (orderEmail) {
+          console.log('💳 ORDER EMAIL:', orderEmail)
+        }
         console.log('💳 ========================================')
       } catch (error) {
         console.error('💳 ❌ Session check error:', error)

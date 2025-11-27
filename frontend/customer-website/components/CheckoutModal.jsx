@@ -138,6 +138,21 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
 
       console.log('Creating Razorpay Payment Link (amount will be LOCKED)...')
       console.log('Order data:', orderData)
+      
+      // CRITICAL: Save auth token and user to sessionStorage BEFORE redirect
+      // This ensures we can restore session even if localStorage gets cleared
+      const token = localStorage.getItem('auth_token')
+      const userData = localStorage.getItem('user_data')
+      if (token && userData) {
+        console.log('💾 BACKUP: Saving auth data to sessionStorage before payment...')
+        sessionStorage.setItem('auth_token_backup', token)
+        sessionStorage.setItem('user_data_backup', userData)
+        console.log('💾 BACKUP: Saved user:', JSON.parse(userData).email)
+      }
+      
+      // EXTRA BACKUP: Save order email too
+      sessionStorage.setItem('last_order_email', finalEmail)
+      console.log('💾 BACKUP: Saved order email:', finalEmail)
 
       // Create Razorpay Payment Link (LOCKED AMOUNT)
       const paymentLinkResponse = await fetch(`${API_BASE_URL}/api/v1/payment-links/create`, {

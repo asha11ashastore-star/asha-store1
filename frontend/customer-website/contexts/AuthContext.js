@@ -12,10 +12,26 @@ export function AuthProvider({ children }) {
     // Check if user is already logged in
     const checkAuthStatus = async () => {
       try {
-        const token = apiService.getToken()
-        const savedUser = localStorage.getItem('user_data')
+        let token = apiService.getToken()
+        let savedUser = localStorage.getItem('user_data')
         
         console.log('🔐 Auth check - Token exists:', !!token, '| SavedUser exists:', !!savedUser)
+        
+        // CRITICAL BACKUP: If localStorage is empty, check sessionStorage backup
+        if (!token || !savedUser) {
+          console.log('🔐 localStorage empty, checking sessionStorage backup...')
+          const tokenBackup = sessionStorage.getItem('auth_token_backup')
+          const userBackup = sessionStorage.getItem('user_data_backup')
+          
+          if (tokenBackup && userBackup) {
+            console.log('🔐 ✅ RESTORING from sessionStorage backup!')
+            localStorage.setItem('auth_token', tokenBackup)
+            localStorage.setItem('user_data', userBackup)
+            token = tokenBackup
+            savedUser = userBackup
+            console.log('🔐 ✅ Restored user:', JSON.parse(userBackup).email)
+          }
+        }
         
         // CRITICAL FIX: If we have a token, ALWAYS verify with API first
         // This prevents showing wrong user after payment redirect
