@@ -71,11 +71,12 @@ def verify_origin(origin: str, allowed_origins: List[str]) -> bool:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
-    allow_origin_regex=r"https://.*-ashastore\.vercel\.app",  # Allow all Vercel deployment URLs
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Allow ALL Vercel deployment URLs
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
-    expose_headers=["X-Request-ID"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # Add trusted host middleware for production

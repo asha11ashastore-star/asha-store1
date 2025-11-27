@@ -81,16 +81,21 @@ CORS_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
-    # Production Vercel deployments - all possible patterns
+    "http://localhost:5173",  # Vite dev server
+    "http://127.0.0.1:5173",
+    # Production Vercel deployments - specific URLs
     "https://react-dashboard-ashastore.vercel.app",
     "https://customer-website-lovat.vercel.app",
-    "https://react-dashboard-gwz6vra1a-ashastore.vercel.app",
-    "https://customer-website-16yp3wa3t-ashastore.vercel.app",
+    "https://react-dashboard-nine-beta-65.vercel.app",
+    "https://customer-website-pq176eplu-ashastore.vercel.app",
+    # Git branch deployments
     "https://react-dashboard-git-main-ashastore.vercel.app",
     "https://customer-website-git-main-ashastore.vercel.app",
+    # Allow any Vercel preview deployment
+    "https://react-dashboard-g83d67ju-ashastore.vercel.app",
 ]
 
-# Allow all Vercel deployment URLs
+# Allow all Vercel deployment URLs (wildcard regex)
 CORS_ORIGIN_REGEX = r"https://.*\.vercel\.app"
 
 if settings.environment == "production":
