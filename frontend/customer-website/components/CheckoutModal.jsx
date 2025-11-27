@@ -151,8 +151,8 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       }
       
       // EXTRA BACKUP: Save order email too
-      sessionStorage.setItem('last_order_email', finalEmail)
-      console.log('💾 BACKUP: Saved order email:', finalEmail)
+      sessionStorage.setItem('last_order_email', verifiedEmail)
+      console.log('💾 BACKUP: Saved order email:', verifiedEmail)
 
       // Create Razorpay Payment Link (LOCKED AMOUNT)
       const paymentLinkResponse = await fetch(`${API_BASE_URL}/api/v1/payment-links/create`, {
