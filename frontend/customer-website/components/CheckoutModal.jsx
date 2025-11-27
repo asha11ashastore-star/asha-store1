@@ -145,6 +145,17 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       const token = localStorage.getItem('auth_token')
       const userData = localStorage.getItem('user_data')
       
+      // CRITICAL: ALWAYS save the order email, even if not logged in
+      // This survives redirects better than anything else
+      console.log('💾 BACKUP METHOD 0: Saving order email to persistent storage...')
+      try {
+        localStorage.setItem('pending_payment_email', verifiedEmail)
+        localStorage.setItem('pending_payment_time', Date.now().toString())
+        console.log('💾 Saved pending payment for:', verifiedEmail)
+      } catch (e) {
+        console.error('Failed to save pending payment email:', e)
+      }
+      
       if (token && userData) {
         // Method 1: sessionStorage backup
         console.log('💾 BACKUP METHOD 1: Saving to sessionStorage...')
@@ -159,6 +170,10 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         document.cookie = `auth_backup_user=${encodeURIComponent(userData)}; path=/; max-age=3600; SameSite=Lax`
         document.cookie = `auth_backup_email=${verifiedEmail}; path=/; max-age=3600; SameSite=Lax`
         console.log('💾 Saved to cookies (expires in 1 hour)')
+        console.log('🍪 Verifying cookies were saved...')
+        console.log('🍪 document.cookie:', document.cookie)
+        console.log('🍪 Cookie contains auth_backup_token:', document.cookie.includes('auth_backup_token'))
+        console.log('🍪 Cookie contains auth_backup_email:', document.cookie.includes('auth_backup_email'))
       } else {
         console.log('⚠️ No auth data to backup - guest checkout')
       }

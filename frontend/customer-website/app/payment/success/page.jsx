@@ -40,9 +40,16 @@ export default function PaymentSuccessPage() {
         console.log('💳 PAYMENT SUCCESS PAGE - VERIFYING USER')
         console.log('💳 ========================================')
         
-        // CRITICAL: Check URL for customer email (from Razorpay callback)
+        // CRITICAL: Check multiple sources for customer email
         const urlEmail = searchParams.get('email')
+        const pendingEmail = localStorage.getItem('pending_payment_email')
+        const pendingTime = localStorage.getItem('pending_payment_time')
+        
         console.log('💳 Email from URL:', urlEmail || 'None')
+        console.log('💳 Email from pending payment:', pendingEmail || 'None')
+        
+        // Use the most reliable email source
+        const customerEmail = urlEmail || pendingEmail
         
         let token = localStorage.getItem('auth_token')
         let savedUser = localStorage.getItem('user_data')
@@ -76,15 +83,21 @@ export default function PaymentSuccessPage() {
           // Method 2: Check cookies for backup
           else {
             console.log('🔄 METHOD 2: Checking cookies for backup...')
+            console.log('🍪 All cookies:', document.cookie)
             const cookies = document.cookie.split(';').reduce((acc, cookie) => {
               const [key, value] = cookie.trim().split('=')
               acc[key] = value
               return acc
             }, {})
+            console.log('🍪 Parsed cookies:', Object.keys(cookies))
             
             const cookieToken = cookies['auth_backup_token']
             const cookieUser = cookies['auth_backup_user']
             const cookieEmail = cookies['auth_backup_email']
+            
+            console.log('🍪 Found auth_backup_token:', !!cookieToken)
+            console.log('🍪 Found auth_backup_user:', !!cookieUser)
+            console.log('🍪 Found auth_backup_email:', cookieEmail || 'None')
             
             if (cookieToken && cookieUser) {
               console.log('✅ Found backup in cookies!')
@@ -102,14 +115,18 @@ export default function PaymentSuccessPage() {
               document.cookie = 'auth_backup_user=; path=/; max-age=0'
               document.cookie = 'auth_backup_email=; path=/; max-age=0'
             }
-            // Method 3: Check if email in URL
-            else if (urlEmail) {
-              console.log('🔄 METHOD 3: Trying to restore session for email:', urlEmail)
+            // Method 3: Check if email available from any source
+            else if (customerEmail) {
+              console.log('🔄 METHOD 3: Trying to restore session for email:', customerEmail)
               console.log('⚠️ No backup found - user needs to login again')
-              console.log('💡 TIP: User should login as:', urlEmail)
+              console.log('💡 TIP: User should login as:', customerEmail)
               
               // Store the email for display
-              sessionStorage.setItem('expected_login_email', urlEmail)
+              sessionStorage.setItem('expected_login_email', customerEmail)
+              
+              // Clear pending payment data (we've processed it)
+              localStorage.removeItem('pending_payment_email')
+              localStorage.removeItem('pending_payment_time')
             } 
             else {
               console.log('❌ No backup found in any method!')
@@ -118,9 +135,11 @@ export default function PaymentSuccessPage() {
           }
         } else {
           console.log('✅ Auth data exists in localStorage')
-          // Clear any old backups
+          // Clear any old backups and pending payments
           sessionStorage.removeItem('auth_token_backup')
           sessionStorage.removeItem('user_data_backup')
+          localStorage.removeItem('pending_payment_email')
+          localStorage.removeItem('pending_payment_time')
           document.cookie = 'auth_backup_token=; path=/; max-age=0'
           document.cookie = 'auth_backup_user=; path=/; max-age=0'
           document.cookie = 'auth_backup_email=; path=/; max-age=0'
@@ -444,26 +463,36 @@ export default function PaymentSuccessPage() {
                   const expectedEmail = sessionStorage.getItem('expected_login_email')
                   if (expectedEmail) {
                     return (
-                      <>
-                        <p className="text-base text-amber-700 font-semibold mb-2">
+                      <div className="bg-amber-100 border-2 border-amber-400 rounded-lg p-6">
+                        <div className="text-3xl mb-3">🔒</div>
+                        <p className="text-lg text-amber-800 font-bold mb-3">
                           Session Lost After Payment
                         </p>
-                        <p className="text-sm text-gray-600 mb-3">
-                          Your order was placed with: <strong>{expectedEmail}</strong>
-                        </p>
-                        <p className="text-sm text-gray-700 font-semibold mb-2">
-                          Please login to view your order:
+                        <div className="bg-white rounded-lg p-4 mb-4">
+                          <p className="text-sm text-gray-600 mb-1">
+                            Your order was successfully placed with:
+                          </p>
+                          <p className="text-base font-bold text-gray-900">
+                            {expectedEmail}
+                          </p>
+                        </div>
+                        <p className="text-sm text-gray-700 font-semibold mb-4">
+                          ✅ Payment Confirmed<br/>
+                          🔐 Please login to access your order
                         </p>
                         <button
                           onClick={() => {
                             sessionStorage.setItem('redirect_after_login', '/orders')
                             window.location.href = '/auth/login'
                           }}
-                          className="mt-2 bg-primary-brown text-white px-6 py-2 rounded-lg hover:bg-brown-700 transition-colors"
+                          className="w-full bg-primary-brown text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-brown-700 transition-colors shadow-lg"
                         >
-                          Login as {expectedEmail}
+                          🔑 Login as {expectedEmail}
                         </button>
-                      </>
+                        <p className="text-xs text-gray-500 mt-3">
+                          You'll be redirected to your orders after login
+                        </p>
+                      </div>
                     )
                   } else {
                     return (
@@ -483,12 +512,32 @@ export default function PaymentSuccessPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                href="/orders"
-                className={`bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors text-center ${!sessionRestored ? 'opacity-50 pointer-events-none' : ''}`}
-              >
-                📦 View My Orders
-              </Link>
+              {user ? (
+                <Link 
+                  href="/orders"
+                  className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors text-center"
+                >
+                  📦 View My Orders
+                </Link>
+              ) : (
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-3">
+                    {sessionStorage.getItem('expected_login_email') 
+                      ? `Login to view your order in your account` 
+                      : `Your order is saved. Login to track it.`}
+                  </p>
+                  <Link 
+                    href="/orders"
+                    className="bg-gray-400 text-white px-8 py-3 rounded-lg font-medium cursor-not-allowed inline-block opacity-60"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      alert('Please login first to view your orders')
+                    }}
+                  >
+                    📦 View My Orders (Login Required)
+                  </Link>
+                </div>
+              )}
               
               <Link 
                 href="/collections"
