@@ -13,43 +13,78 @@ export default function PaymentSuccessPage() {
   const [sessionRestored, setSessionRestored] = useState(false)
   const { refreshUser, user } = useAuth()
   
+  // Log current user whenever it changes
+  useEffect(() => {
+    if (user) {
+      console.log('💳 👤 CURRENT USER DISPLAYED:', user.email)
+      console.log('💳 👤 User ID:', user.id)
+      console.log('💳 👤 Username:', user.username)
+      console.log('💳 👤 First Name:', user.first_name)
+    } else {
+      console.log('💳 👤 NO USER DISPLAYED (Guest checkout)')
+    }
+  }, [user])
+  
   // Check session status after payment redirect
   useEffect(() => {
     const checkSession = async () => {
       try {
-        console.log('🔄 Payment Success - Checking user session...')
+        console.log('💳 ========================================')
+        console.log('💳 PAYMENT SUCCESS PAGE - VERIFYING USER')
+        console.log('💳 ========================================')
         
         const token = localStorage.getItem('auth_token')
         const savedUser = localStorage.getItem('user_data')
         
-        console.log('Token exists:', !!token, '| SavedUser exists:', !!savedUser)
+        console.log('💳 Token exists:', !!token)
+        console.log('💳 SavedUser exists:', !!savedUser)
         
-        if (token && savedUser) {
-          // Try to refresh user data from API
+        if (token) {
+          console.log('💳 Token found (first 10 chars):', token.substring(0, 10) + '...')
+          
+          if (savedUser) {
+            try {
+              const userData = JSON.parse(savedUser)
+              console.log('💳 localStorage has user:', userData.email)
+            } catch (e) {
+              console.error('💳 Failed to parse saved user data')
+            }
+          }
+          
+          // FORCE refresh user data from API with token
           try {
-            await refreshUser()
-            console.log('✅ User session verified with API')
+            console.log('💳 FORCING API verification...')
+            const freshUser = await refreshUser()
+            console.log('💳 ✅ API VERIFIED USER:', freshUser?.email || user?.email)
+            console.log('💳 ✅ User ID:', freshUser?.id || user?.id)
+            console.log('💳 ✅ Username:', freshUser?.username || user?.username)
             
             // Give extra time for AuthContext to fully restore
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            await new Promise(resolve => setTimeout(resolve, 1500))
+            
+            console.log('💳 ✅ SESSION RESTORED - User authenticated')
           } catch (error) {
-            console.warn('⚠️ API check failed, but user data exists in localStorage')
-            // Don't worry - AuthContext will handle restoration
+            console.error('💳 ❌ API verification FAILED:', error)
+            console.warn('💳 ⚠️ Will try to use localStorage as fallback')
           }
         } else {
-          console.log('ℹ️ Guest checkout - no user session')
+          console.log('💳 ℹ️ No token - Guest checkout')
         }
+        
+        console.log('💳 ========================================')
+        console.log('💳 FINAL USER:', user?.email || 'No user')
+        console.log('💳 ========================================')
       } catch (error) {
-        console.warn('⚠️ Session check error:', error)
+        console.error('💳 ❌ Session check error:', error)
       } finally {
         setSessionRestored(true)
       }
     }
     
     // Longer delay after payment redirect to ensure AuthContext fully initializes
-    const timer = setTimeout(checkSession, 1500)
+    const timer = setTimeout(checkSession, 2000)
     return () => clearTimeout(timer)
-  }, [refreshUser])
+  }, [refreshUser, user])
 
   useEffect(() => {
     const updateOrderStatus = async () => {
@@ -224,13 +259,26 @@ export default function PaymentSuccessPage() {
             )}
             
             {sessionRestored && user && (
-              <div className="mb-4 text-center">
-                <p className="text-sm text-green-600">
-                  ✅ Logged in as: <strong>{user.email}</strong>
+              <div className="mb-4 text-center bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="text-2xl mb-2">✅</div>
+                <p className="text-lg text-green-700 font-bold mb-2">
+                  Logged in as: {user.email}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Your order is linked to this account
+                <p className="text-sm text-gray-700 mb-3">
+                  🎉 Your order is linked to this account
                 </p>
+                <div className="mt-3 pt-3 border-t border-green-200 text-xs text-gray-600 space-y-1">
+                  <p><strong>Name:</strong> {user.first_name} {user.last_name || ''}</p>
+                  <p><strong>Username:</strong> {user.username}</p>
+                  <p><strong>User ID:</strong> {user.id}</p>
+                  <p className="text-green-600"><strong>✓ Token Valid</strong></p>
+                </div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-3 text-xs text-gray-600 hover:text-gray-800 underline"
+                >
+                  Wrong account? Click to refresh
+                </button>
               </div>
             )}
             
