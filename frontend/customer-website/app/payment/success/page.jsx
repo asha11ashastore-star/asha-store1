@@ -226,7 +226,18 @@ export default function PaymentSuccessPage() {
             {sessionRestored && user && (
               <div className="mb-4 text-center">
                 <p className="text-sm text-green-600">
-                  ✅ Logged in as: {user.email}
+                  ✅ Logged in as: <strong>{user.email}</strong>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Your order is linked to this account
+                </p>
+              </div>
+            )}
+            
+            {sessionRestored && !user && (
+              <div className="mb-4 text-center">
+                <p className="text-sm text-amber-600">
+                  ℹ️ Guest checkout - Order saved with your contact details
                 </p>
               </div>
             )}
