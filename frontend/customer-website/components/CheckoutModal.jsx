@@ -102,6 +102,14 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         throw new Error('Invalid order amount. Please check your cart.')
       }
       
+      console.log('🚀 ========== CHECKOUT STARTED ==========')
+      console.log('🔐 User logged in:', !!user)
+      console.log('📧 User email:', user?.email || 'None')
+      console.log('💰 Total amount:', totalAmount)
+      console.log('🔑 Token in localStorage:', !!localStorage.getItem('auth_token'))
+      console.log('👤 User data in localStorage:', !!localStorage.getItem('user_data'))
+      console.log('🚀 ========================================')
+      
       console.log('Creating Payment Link with locked amount:', totalAmount)
       
       // Create order in database with formatted address
@@ -147,13 +155,21 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       
       // CRITICAL: ALWAYS save the order email, even if not logged in
       // This survives redirects better than anything else
+      console.log('💾 ========== BACKUP STARTED ==========')
       console.log('💾 BACKUP METHOD 0: Saving order email to persistent storage...')
       try {
         localStorage.setItem('pending_payment_email', verifiedEmail)
         localStorage.setItem('pending_payment_time', Date.now().toString())
+        const savedEmail = localStorage.getItem('pending_payment_email')
         console.log('💾 Saved pending payment for:', verifiedEmail)
+        console.log('💾 Verification - Read back:', savedEmail)
+        if (savedEmail !== verifiedEmail) {
+          console.error('❌ ERROR: Email not saved correctly!')
+        } else {
+          console.log('✅ Email saved and verified!')
+        }
       } catch (e) {
-        console.error('Failed to save pending payment email:', e)
+        console.error('❌ CRITICAL ERROR saving pending payment email:', e)
       }
       
       if (token && userData) {
@@ -176,7 +192,11 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         console.log('🍪 Cookie contains auth_backup_email:', document.cookie.includes('auth_backup_email'))
       } else {
         console.log('⚠️ No auth data to backup - guest checkout')
+        console.log('⚠️ Token exists:', !!token)
+        console.log('⚠️ UserData exists:', !!userData)
       }
+      
+      console.log('💾 ========== BACKUP COMPLETED ==========')
 
       // Create Razorpay Payment Link (LOCKED AMOUNT)
       const paymentLinkResponse = await fetch(`${API_BASE_URL}/api/v1/payment-links/create`, {
@@ -246,7 +266,17 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         timestamp: Date.now()
       }))
       
-      // Redirect to Razorpay payment page (DIRECT - like Amazon)
+      // WAIT 500ms to ensure all storage operations complete before redirect
+      console.log('⏳ Waiting 500ms for storage operations to complete...')
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      console.log('🔄 Final verification before redirect:')
+      console.log('  pending_payment_email:', localStorage.getItem('pending_payment_email'))
+      console.log('  auth_token_backup:', !!sessionStorage.getItem('auth_token_backup'))
+      console.log('  cookies:', document.cookie.includes('auth_backup'))
+      
+      // Redirect to Razorpay payment page
+      console.log('🚀 Redirecting to payment page...')
       window.location.href = paymentUrl
       
       // Don't clear cart or close modal - page is redirecting
