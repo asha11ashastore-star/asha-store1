@@ -17,27 +17,33 @@ export function AuthProvider({ children }) {
         
         console.log('🔐 Auth check - Token exists:', !!token, '| SavedUser exists:', !!savedUser)
         
-        // If we have saved user data, restore it immediately (optimistic)
-        if (savedUser) {
-          try {
-            const parsedUser = JSON.parse(savedUser)
-            setUser(parsedUser)
-            console.log('✅ User restored from localStorage:', parsedUser.email)
-          } catch (e) {
-            console.error('❌ Failed to parse saved user data')
-            localStorage.removeItem('user_data')
-          }
-        }
-        
-        // Then verify with API if we have a token
+        // CRITICAL FIX: If we have a token, ALWAYS verify with API first
+        // This prevents showing wrong user after payment redirect
         if (token) {
           try {
+            console.log('🔍 Token found - verifying with API...')
             const userData = await apiService.getCurrentUser()
             setUser(userData)
             console.log('✅ User verified with API:', userData.email)
             
-            // Update localStorage with fresh data
+            // Update localStorage with fresh, verified data
             localStorage.setItem('user_data', JSON.stringify(userData))
+            
+            // Check if localStorage had different user (security issue!)
+            if (savedUser) {
+              try {
+                const oldUser = JSON.parse(savedUser)
+                if (oldUser.email !== userData.email) {
+                  console.warn('⚠️ SECURITY: localStorage had different user!', {
+                    localStorage: oldUser.email,
+                    apiVerified: userData.email
+                  })
+                  console.log('✅ Fixed: Using API-verified user')
+                }
+              } catch (e) {
+                // Ignore parse errors
+              }
+            }
           } catch (apiError) {
             console.error('❌ API verification failed:', apiError)
             // If 401, token is invalid - clear everything
@@ -46,12 +52,34 @@ export function AuthProvider({ children }) {
               apiService.logout()
               localStorage.removeItem('user_data')
               setUser(null)
+            } else {
+              // Network error - restore from localStorage as fallback ONLY
+              console.warn('⚠️ Network error, using localStorage as fallback')
+              if (savedUser) {
+                try {
+                  const parsedUser = JSON.parse(savedUser)
+                  setUser(parsedUser)
+                  console.log('⚠️ Fallback: User restored from localStorage:', parsedUser.email)
+                } catch (e) {
+                  console.error('❌ Failed to parse saved user data')
+                  localStorage.removeItem('user_data')
+                }
+              }
             }
-            // Otherwise keep the saved user data (network issue)
           }
+        } else {
+          // No token - user is not logged in
+          console.log('ℹ️ No token found - user not logged in')
+          // Clear any stale user data
+          if (savedUser) {
+            console.log('🧹 Clearing stale user data from localStorage')
+            localStorage.removeItem('user_data')
+          }
+          setUser(null)
         }
       } catch (error) {
         console.error('❌ Auth check failed:', error)
+        setUser(null)
       } finally {
         setIsLoading(false)
       }
