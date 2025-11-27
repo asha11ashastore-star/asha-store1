@@ -37,6 +37,19 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
     }
   }, [isOpen, user])
 
+  // CRITICAL FIX: Always sync customerInfo with logged-in user's email
+  useEffect(() => {
+    if (user) {
+      console.log('🔄 Syncing checkout form with logged-in user:', user.email)
+      setCustomerInfo(prev => ({
+        ...prev,
+        name: user.first_name + (user.last_name ? ` ${user.last_name}` : ''),
+        email: user.email, // ALWAYS use logged-in user's email
+        phone: user.phone || prev.phone
+      }))
+    }
+  }, [user])
+
   if (!isOpen) return null
 
   const validateForm = () => {
@@ -94,9 +107,23 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
       // Create order in database with formatted address
       const fullAddress = `${customerInfo.address}, ${customerInfo.city}, ${customerInfo.state} - ${customerInfo.pinCode}`
       
+      // CRITICAL SECURITY: ALWAYS use logged-in user's email for the order
+      const verifiedEmail = user ? user.email : customerInfo.email
+      
+      console.log('🔒 Security check - Order will be created with:')
+      console.log('  Logged-in user:', user?.email || 'None')
+      console.log('  Form email:', customerInfo.email)
+      console.log('  Using email:', verifiedEmail)
+      
+      if (user && user.email !== customerInfo.email) {
+        console.warn('⚠️ SECURITY WARNING: Form email differs from logged-in user!')
+        console.warn('  Form had:', customerInfo.email)
+        console.warn('  Forcing to use:', user.email)
+      }
+      
       const orderData = {
         customer_name: customerInfo.name,
-        customer_email: customerInfo.email,
+        customer_email: verifiedEmail, // ALWAYS use verified email!
         customer_phone: customerInfo.phone,
         customer_address: fullAddress,
         items: items.map(item => ({
@@ -333,18 +360,22 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
+                  Email * {user && <span className="text-xs text-green-600">✓ Verified from your account</span>}
                 </label>
                 <input
                   type="email"
                   value={customerInfo.email}
                   onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                  readOnly={!!user}
+                  disabled={!!user}
                   className={`w-full px-3 sm:px-4 py-3 sm:py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-brown-600 ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  } ${user ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   placeholder="your@email.com"
+                  title={user ? 'Email is locked to your account for security' : ''}
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                {user && <p className="text-xs text-gray-600 mt-1">🔒 Order will be linked to your account: {user.email}</p>}
               </div>
 
               <div>
