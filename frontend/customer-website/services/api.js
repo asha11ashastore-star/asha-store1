@@ -4,24 +4,34 @@ const RAZORPAY_KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_you
 class ApiService {
   constructor() {
     this.baseURL = API_BASE_URL
-    this.token = null
+    // CRITICAL FIX: DO NOT cache token in memory!
+    // Always read from localStorage to prevent token mixing between users
   }
 
   setToken(token) {
-    this.token = token
+    // CRITICAL FIX: Only use localStorage, NO in-memory caching
     if (typeof window !== 'undefined') {
       if (token) {
+        console.log('🔑 Setting token in localStorage (first 10 chars):', token.substring(0, 10) + '...')
         localStorage.setItem('auth_token', token)
       } else {
+        console.log('🗑️ Removing token from localStorage')
         localStorage.removeItem('auth_token')
       }
     }
   }
 
   getToken() {
-    if (this.token) return this.token
+    // CRITICAL FIX: ALWAYS read from localStorage, NEVER cache in memory
+    // This prevents token mixing when singleton is shared
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token')
+      const token = localStorage.getItem('auth_token')
+      if (token) {
+        console.log('🔑 Retrieved token from localStorage (first 10 chars):', token.substring(0, 10) + '...')
+      } else {
+        console.log('🔑 No token in localStorage')
+      }
+      return token
     }
     return null
   }
@@ -32,6 +42,14 @@ class ApiService {
     const timestamp = new Date().getTime()
     const url = `${this.baseURL}${endpoint}${separator}_t=${timestamp}`
     const token = this.getToken()
+    
+    // Log API request with token info
+    console.log(`📡 API Request: ${options.method || 'GET'} ${endpoint}`)
+    if (token) {
+      console.log(`📡   → Using token (first 10): ${token.substring(0, 10)}...`)
+    } else {
+      console.log(`📡   → No token (public request)`)
+    }
     
     const config = {
       cache: 'no-store',  // Prevent Next.js caching
@@ -81,6 +99,8 @@ class ApiService {
   // Auth endpoints
   async login(email, password) {
     try {
+      console.log('🔐 API Service - Login attempt for:', email)
+      
       const response = await this.request('/api/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify({
@@ -90,12 +110,17 @@ class ApiService {
       })
 
       if (response.access_token) {
+        console.log('🔐 API Service - Login successful for:', email)
+        console.log('🔐 API Service - Received token (first 10):', response.access_token.substring(0, 10) + '...')
         this.setToken(response.access_token)
+        console.log('🔐 API Service - Token stored in localStorage')
+      } else {
+        console.error('🔐 API Service - No token in response!')
       }
 
       return response
     } catch (error) {
-      console.error('Login API error:', error)
+      console.error('🔐 API Service - Login failed for:', email, error)
       throw error
     }
   }
@@ -112,7 +137,12 @@ class ApiService {
   }
 
   async getCurrentUser() {
-    return await this.request('/api/v1/auth/me')
+    console.log('👤 API Service - Fetching current user...')
+    const userData = await this.request('/api/v1/auth/me')
+    console.log('👤 API Service - Current user:', userData.email)
+    console.log('👤 API Service - User ID:', userData.id)
+    console.log('👤 API Service - Username:', userData.username)
+    return userData
   }
 
   // Products endpoints
