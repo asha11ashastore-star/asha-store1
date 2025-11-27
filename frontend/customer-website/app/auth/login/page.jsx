@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/AuthContext'
 import Header from '../../../components/Header'
@@ -12,6 +12,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [autoFilledEmail, setAutoFilledEmail] = useState(false)
+
+  // Pre-fill email if coming from payment success page
+  useEffect(() => {
+    const savedEmail = sessionStorage.getItem('login_email')
+    if (savedEmail) {
+      console.log('✅ Pre-filling email from session:', savedEmail)
+      setEmail(savedEmail)
+      setAutoFilledEmail(true)
+      // Clear it so it doesn't persist
+      sessionStorage.removeItem('login_email')
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -20,8 +33,17 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
-      // Redirect back to previous page or home
-      router.push('/')
+      
+      // Check if there's a redirect destination (from payment success)
+      const redirectTo = sessionStorage.getItem('redirect_after_login')
+      if (redirectTo) {
+        console.log('✅ Redirecting back to:', redirectTo)
+        sessionStorage.removeItem('redirect_after_login')
+        router.push(redirectTo)
+      } else {
+        // Default redirect to home
+        router.push('/')
+      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Invalid email or password')
     } finally {
@@ -38,8 +60,17 @@ export default function LoginPage() {
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-serif text-primary-brown mb-2">Welcome Back</h1>
-              <p className="text-gray-600">Login to your account to continue shopping</p>
+              <p className="text-gray-600">
+                {autoFilledEmail ? 'Login to view your order' : 'Login to your account to continue shopping'}
+              </p>
             </div>
+
+            {autoFilledEmail && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-800 font-semibold">✅ Payment Successful!</p>
+                <p className="text-sm text-green-700 mt-1">Login to view your order in your account</p>
+              </div>
+            )}
 
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">

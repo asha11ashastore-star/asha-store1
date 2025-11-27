@@ -115,18 +115,24 @@ export default function PaymentSuccessPage() {
               document.cookie = 'auth_backup_user=; path=/; max-age=0'
               document.cookie = 'auth_backup_email=; path=/; max-age=0'
             }
-            // Method 3: Check if email available from any source
+            // Method 3: AUTO-REDIRECT TO LOGIN with email pre-filled
             else if (customerEmail) {
-              console.log('🔄 METHOD 3: Trying to restore session for email:', customerEmail)
-              console.log('⚠️ No backup found - user needs to login again')
-              console.log('💡 TIP: User should login as:', customerEmail)
+              console.log('🔄 METHOD 3: Auto-redirecting to login for:', customerEmail)
+              console.log('💡 User will be redirected to login page')
               
-              // Store the email for display
-              sessionStorage.setItem('expected_login_email', customerEmail)
+              // Store email and redirect destination
+              sessionStorage.setItem('login_email', customerEmail)
+              sessionStorage.setItem('redirect_after_login', window.location.pathname + window.location.search)
               
-              // Clear pending payment data (we've processed it)
+              // Clear pending payment data
               localStorage.removeItem('pending_payment_email')
               localStorage.removeItem('pending_payment_time')
+              
+              // AUTO-REDIRECT to login after 2 seconds
+              console.log('⏰ Redirecting to login in 2 seconds...')
+              setTimeout(() => {
+                window.location.href = '/auth/login'
+              }, 2000)
             } 
             else {
               console.log('❌ No backup found in any method!')
@@ -463,34 +469,29 @@ export default function PaymentSuccessPage() {
                   const expectedEmail = sessionStorage.getItem('expected_login_email')
                   if (expectedEmail) {
                     return (
-                      <div className="bg-amber-100 border-2 border-amber-400 rounded-lg p-6">
-                        <div className="text-3xl mb-3">🔒</div>
-                        <p className="text-lg text-amber-800 font-bold mb-3">
-                          Session Lost After Payment
+                      <div className="bg-green-100 border-2 border-green-400 rounded-lg p-6">
+                        <div className="text-3xl mb-3">✅</div>
+                        <p className="text-lg text-green-800 font-bold mb-3">
+                          Payment Successful!
                         </p>
                         <div className="bg-white rounded-lg p-4 mb-4">
                           <p className="text-sm text-gray-600 mb-1">
-                            Your order was successfully placed with:
+                            Order placed with:
                           </p>
                           <p className="text-base font-bold text-gray-900">
                             {expectedEmail}
                           </p>
                         </div>
-                        <p className="text-sm text-gray-700 font-semibold mb-4">
-                          ✅ Payment Confirmed<br/>
-                          🔐 Please login to access your order
-                        </p>
-                        <button
-                          onClick={() => {
-                            sessionStorage.setItem('redirect_after_login', '/orders')
-                            window.location.href = '/auth/login'
-                          }}
-                          className="w-full bg-primary-brown text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-brown-700 transition-colors shadow-lg"
-                        >
-                          🔑 Login as {expectedEmail}
-                        </button>
-                        <p className="text-xs text-gray-500 mt-3">
-                          You'll be redirected to your orders after login
+                        <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 mb-4">
+                          <p className="text-sm text-amber-800 font-semibold mb-1">
+                            🔄 Redirecting to login...
+                          </p>
+                          <p className="text-xs text-amber-700">
+                            Your email will be pre-filled
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-600 text-center">
+                          After login, you'll see your order in "My Orders"
                         </p>
                       </div>
                     )
