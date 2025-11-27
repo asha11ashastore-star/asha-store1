@@ -11,19 +11,26 @@ export default function PaymentSuccessPage() {
   const router = useRouter()
   const [orderDetails, setOrderDetails] = useState(null)
   const [sessionRestored, setSessionRestored] = useState(false)
-  const { refreshUser, user } = useAuth()
+  const { refreshUser, user, isLoading } = useAuth()
   
-  // Log current user whenever it changes
+  // Log current user and loading state whenever they change
   useEffect(() => {
+    console.log('💳 ⏱️ AUTH STATE CHANGED:')
+    console.log('   isLoading:', isLoading)
+    console.log('   sessionRestored:', sessionRestored)
+    console.log('   user:', user ? user.email : 'null')
+    
     if (user) {
       console.log('💳 👤 CURRENT USER DISPLAYED:', user.email)
       console.log('💳 👤 User ID:', user.id)
       console.log('💳 👤 Username:', user.username)
       console.log('💳 👤 First Name:', user.first_name)
-    } else {
+    } else if (!isLoading) {
       console.log('💳 👤 NO USER DISPLAYED (Guest checkout)')
+    } else {
+      console.log('💳 ⏳ Still loading auth...')
     }
-  }, [user])
+  }, [user, isLoading, sessionRestored])
   
   // Check session status after payment redirect
   useEffect(() => {
@@ -278,16 +285,16 @@ export default function PaymentSuccessPage() {
             </div>
 
             {/* Session Status Indicator */}
-            {!sessionRestored && (
+            {(!sessionRestored || isLoading) && (
               <div className="mb-4 text-center">
                 <div className="inline-flex items-center gap-2 text-sm text-gray-600">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-brown"></div>
-                  Restoring your session...
+                  {isLoading ? 'Loading your account...' : 'Restoring your session...'}
                 </div>
               </div>
             )}
             
-            {sessionRestored && user && (
+            {sessionRestored && !isLoading && user && (
               <div className="mb-4 text-center bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="text-2xl mb-2">✅</div>
                 <p className="text-lg text-green-700 font-bold mb-2">
@@ -311,10 +318,14 @@ export default function PaymentSuccessPage() {
               </div>
             )}
             
-            {sessionRestored && !user && (
-              <div className="mb-4 text-center">
-                <p className="text-sm text-amber-600">
-                  ℹ️ Guest checkout - Order saved with your contact details
+            {sessionRestored && !isLoading && !user && (
+              <div className="mb-4 text-center bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="text-2xl mb-2">ℹ️</div>
+                <p className="text-base text-amber-700 font-semibold mb-2">
+                  Guest Checkout
+                </p>
+                <p className="text-sm text-gray-600">
+                  Order saved with your contact details
                 </p>
               </div>
             )}
