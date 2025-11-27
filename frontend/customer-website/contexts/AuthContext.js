@@ -53,24 +53,43 @@ export function AuthProvider({ children }) {
             }
           } catch (apiError) {
             console.error('❌ API verification failed:', apiError)
-            // If 401, token is invalid - clear everything
-            if (apiError.message.includes('401') || apiError.message.includes('Unauthorized')) {
-              console.log('🔐 Token invalid, clearing session')
+            console.error('❌ Error message:', apiError.message)
+            console.error('❌ Error details:', JSON.stringify(apiError))
+            
+            // Check if it's truly a 401/token invalid error
+            const is401 = apiError.message?.includes('401') || 
+                         apiError.message?.includes('Unauthorized') ||
+                         apiError.message?.includes('Invalid token')
+            
+            if (is401) {
+              console.log('🔐 Token is TRULY invalid (401), clearing session')
               apiService.logout()
               localStorage.removeItem('user_data')
               setUser(null)
             } else {
-              // Network error - restore from localStorage as fallback ONLY
-              console.warn('⚠️ Network error, using localStorage as fallback')
+              // Network error, CORS, or other issue - DON'T logout!
+              // Keep user logged in with localStorage data
+              console.warn('⚠️ API call failed but NOT 401 - keeping session!')
+              console.warn('⚠️ This could be network issue, CORS, or server down')
+              console.warn('⚠️ Using localStorage as fallback to keep user logged in')
+              
               if (savedUser) {
                 try {
                   const parsedUser = JSON.parse(savedUser)
                   setUser(parsedUser)
-                  console.log('⚠️ Fallback: User restored from localStorage:', parsedUser.email)
+                  console.log('✅ User kept logged in from localStorage:', parsedUser.email)
+                  console.log('✅ User ID:', parsedUser.id)
+                  console.log('✅ Will retry API verification on next navigation')
                 } catch (e) {
-                  console.error('❌ Failed to parse saved user data')
-                  localStorage.removeItem('user_data')
+                  console.error('❌ Failed to parse saved user data:', e)
+                  // Even if parse fails, DON'T clear localStorage yet
+                  // User might still be logged in
                 }
+              } else {
+                // No savedUser but have token - this is suspicious
+                console.warn('⚠️ Have token but no saved user data - keeping token')
+                console.warn('⚠️ Will retry to fetch user on next API call')
+                // Don't set user, but don't clear token either
               }
             }
           }
@@ -180,13 +199,31 @@ export function AuthProvider({ children }) {
 
   const refreshUser = async () => {
     try {
+      console.log('🔄 Refreshing user data from API...')
       const userData = await apiService.getCurrentUser()
       setUser(userData)
       localStorage.setItem('user_data', JSON.stringify(userData))
-      console.log('✅ User data refreshed:', userData.email)
+      console.log('✅ User data refreshed successfully:', userData.email)
+      console.log('✅ User ID:', userData.id)
       return userData
     } catch (error) {
-      console.error('Failed to refresh user:', error)
+      console.error('⚠️ Failed to refresh user from API:', error)
+      
+      // DON'T throw error! Instead, try to use localStorage data
+      const savedUser = localStorage.getItem('user_data')
+      if (savedUser) {
+        try {
+          const parsedUser = JSON.parse(savedUser)
+          console.log('⚠️ Using cached user data from localStorage:', parsedUser.email)
+          setUser(parsedUser)
+          return parsedUser
+        } catch (parseError) {
+          console.error('❌ Failed to parse saved user data:', parseError)
+        }
+      }
+      
+      // Only throw if we truly have no user data
+      console.error('❌ No user data available - refresh failed completely')
       throw error
     }
   }

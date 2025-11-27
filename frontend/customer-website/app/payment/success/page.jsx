@@ -46,27 +46,56 @@ export default function PaymentSuccessPage() {
             try {
               const userData = JSON.parse(savedUser)
               console.log('💳 localStorage has user:', userData.email)
+              console.log('💳 localStorage user ID:', userData.id)
             } catch (e) {
               console.error('💳 Failed to parse saved user data')
             }
           }
           
-          // FORCE refresh user data from API with token
-          try {
-            console.log('💳 FORCING API verification...')
-            const freshUser = await refreshUser()
-            console.log('💳 ✅ API VERIFIED USER:', freshUser?.email || user?.email)
-            console.log('💳 ✅ User ID:', freshUser?.id || user?.id)
-            console.log('💳 ✅ Username:', freshUser?.username || user?.username)
+          // CRITICAL: Try multiple times to verify user
+          let attempts = 0
+          const maxAttempts = 3
+          let verifiedUser = null
+          
+          while (attempts < maxAttempts && !verifiedUser) {
+            attempts++
+            console.log(`💳 Verification attempt ${attempts}/${maxAttempts}...`)
             
-            // Give extra time for AuthContext to fully restore
-            await new Promise(resolve => setTimeout(resolve, 1500))
-            
-            console.log('💳 ✅ SESSION RESTORED - User authenticated')
-          } catch (error) {
-            console.error('💳 ❌ API verification FAILED:', error)
-            console.warn('💳 ⚠️ Will try to use localStorage as fallback')
+            try {
+              const freshUser = await refreshUser()
+              verifiedUser = freshUser
+              console.log('💳 ✅ API VERIFIED USER:', freshUser?.email)
+              console.log('💳 ✅ User ID:', freshUser?.id)
+              console.log('💳 ✅ Username:', freshUser?.username)
+              console.log('💳 ✅ SESSION RESTORED - User authenticated')
+              break
+            } catch (error) {
+              console.error(`💳 ❌ Attempt ${attempts} failed:`, error.message)
+              
+              if (attempts < maxAttempts) {
+                console.log(`💳 ⏳ Waiting 1 second before retry...`)
+                await new Promise(resolve => setTimeout(resolve, 1000))
+              } else {
+                console.error('💳 ❌ All verification attempts failed')
+                console.warn('💳 ⚠️ Using localStorage as fallback')
+                
+                // If all attempts fail, at least try to use localStorage
+                if (savedUser) {
+                  try {
+                    const cachedUser = JSON.parse(savedUser)
+                    console.log('💳 📦 Using cached user from localStorage:', cachedUser.email)
+                    verifiedUser = cachedUser
+                  } catch (e) {
+                    console.error('💳 ❌ Failed to use cached user:', e)
+                  }
+                }
+              }
+            }
           }
+          
+          // Give extra time for state updates to propagate
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
         } else {
           console.log('💳 ℹ️ No token - Guest checkout')
         }
@@ -82,9 +111,9 @@ export default function PaymentSuccessPage() {
     }
     
     // Longer delay after payment redirect to ensure AuthContext fully initializes
-    const timer = setTimeout(checkSession, 2000)
+    const timer = setTimeout(checkSession, 1500)
     return () => clearTimeout(timer)
-  }, [refreshUser, user])
+  }, [refreshUser])
 
   useEffect(() => {
     const updateOrderStatus = async () => {
