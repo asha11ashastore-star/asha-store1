@@ -114,10 +114,13 @@ async def get_products_fixed(
         pages = (total + limit - 1) // limit if limit > 0 else 1
         
         return PaginatedResponse(
+            items=items,
             total=total,
             page=page,
+            limit=limit,
             pages=pages,
-            items=items
+            has_next=page < pages,
+            has_prev=page > 1
         )
         
     except Exception as e:
