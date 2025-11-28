@@ -322,13 +322,27 @@ async def forgot_password(
             expires_delta=60  # 60 minutes
         )
         
-        # Create reset link
-        reset_link = f"https://customer-website-lovat.vercel.app/auth/reset-password?token={reset_token}"
+        # Try to send email
+        email_sent = False
+        try:
+            email_sent = email_service.send_password_reset_email(user, reset_token)
+            if email_sent:
+                logger.info(f"✅ Password reset email sent successfully to: {user.email}")
+            else:
+                logger.warning(f"⚠️ Email service not configured or failed to send")
+        except Exception as e:
+            logger.error(f"❌ Failed to send password reset email: {e}")
         
-        # TEMPORARY: Email service is disabled, so return the reset link directly
-        # In production, enable SendGrid and remove the reset_link from response
-        logger.warning(f"⚠️ EMAIL SERVICE DISABLED - Returning reset link directly to user")
-        logger.info(f"Password reset requested for: {user.email}")
+        # If email was sent successfully, don't show the reset link
+        if email_sent:
+            return {
+                "message": "If the email exists, a password reset link has been sent to your email",
+                "email": user.email
+            }
+        
+        # If email service is not configured, provide reset link directly (fallback)
+        reset_link = f"https://customer-website-lovat.vercel.app/auth/reset-password?token={reset_token}"
+        logger.warning(f"⚠️ EMAIL NOT SENT - Returning reset link directly as fallback")
         logger.info(f"Reset link: {reset_link}")
         
         return {
@@ -336,7 +350,7 @@ async def forgot_password(
             "reset_link": reset_link,
             "email": user.email,
             "expires_in": "60 minutes",
-            "note": "In production, this link would be sent via email"
+            "note": "Configure SendGrid to enable email delivery"
         }
         
     except Exception as e:

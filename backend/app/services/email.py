@@ -1,7 +1,7 @@
-# from sendgrid import SendGridAPIClient
-# from sendgrid.helpers.mail import Mail, Email, To, Content
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email, To, Content
 from typing import Dict, Any, List, Optional
-# from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader, Template
 from app.config import settings
 from app.models import User, Order
 import logging
@@ -11,11 +11,20 @@ logger = logging.getLogger(__name__)
 
 class EmailService:
     def __init__(self):
-        # SendGrid disabled - email functionality optional
-        # self.sg = SendGridAPIClient(api_key=settings.sendgrid_api_key)
-        # self.from_email = Email(settings.from_email, settings.from_name)
-        self.sg = None
-        self.from_email = None
+        # Initialize SendGrid if API key is available
+        if settings.sendgrid_api_key:
+            try:
+                self.sg = SendGridAPIClient(api_key=settings.sendgrid_api_key)
+                self.from_email = Email(settings.from_email, settings.from_name)
+                logger.info("✅ SendGrid email service ENABLED")
+            except Exception as e:
+                logger.error(f"Failed to initialize SendGrid: {e}")
+                self.sg = None
+                self.from_email = None
+        else:
+            logger.warning("⚠️ SendGrid API key not configured - Email service DISABLED")
+            self.sg = None
+            self.from_email = None
         self.jinja_env = None
         
         # Setup Jinja2 environment for email templates (DISABLED)
@@ -33,9 +42,28 @@ class EmailService:
         plain_content: Optional[str] = None,
         template_data: Optional[Dict[str, Any]] = None
     ) -> bool:
-        """Send email using SendGrid (DISABLED - just logging)"""
-        logger.info(f"Email sending disabled - would send to {to_email} with subject: {subject}")
-        return True  # Return True to not break application flow
+        """Send email using SendGrid"""
+        if not self.sg:
+            logger.warning(f"Email service not configured - Cannot send to {to_email}")
+            return False
+        
+        try:
+            message = Mail(
+                from_email=self.from_email,
+                to_emails=to_email,
+                subject=subject,
+                html_content=html_content
+            )
+            
+            if plain_content:
+                message.plain_text_content = plain_content
+            
+            response = self.sg.send(message)
+            logger.info(f"✅ Email sent to {to_email} - Status: {response.status_code}")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Failed to send email to {to_email}: {e}")
+            return False
     
     def render_template(self, template_name: str, context: Dict[str, Any]) -> str:
         """Render email template (DISABLED)"""
@@ -167,20 +195,61 @@ class EmailService:
     
     def send_password_reset_email(self, user: User, reset_token: str) -> bool:
         """Send password reset email"""
-        context = {
-            "user_name": f"{user.first_name} {user.last_name}",
-            "reset_url": f"{settings.frontend_url}/reset-password?token={reset_token}",
-            "expiry_time": "1 hour",
-            "support_email": settings.from_email
-        }
+        reset_url = f"{settings.frontend_url}/auth/reset-password?token={reset_token}"
+        user_name = f"{user.first_name} {user.last_name}"
         
-        html_content = self.render_template("password_reset.html", context)
-        if not html_content:
-            return False
+        # Simple HTML email template
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background-color: #8B4513; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h1 style="margin: 0;">अशा</h1>
+                <p style="margin: 5px 0 0 0;">Asha Store</p>
+            </div>
+            
+            <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px;">
+                <h2 style="color: #8B4513; margin-top: 0;">Reset Your Password</h2>
+                
+                <p>Hello {user_name},</p>
+                
+                <p>We received a request to reset your password for your Asha Store account. Click the button below to create a new password:</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{reset_url}" style="background-color: #8B4513; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Reset Password</a>
+                </div>
+                
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="background-color: #e9e9e9; padding: 10px; border-radius: 4px; word-break: break-all; font-size: 12px;">
+                    {reset_url}
+                </p>
+                
+                <p style="color: #666; font-size: 14px; margin-top: 30px;">
+                    <strong>⚠️ This link will expire in 1 hour.</strong>
+                </p>
+                
+                <p style="color: #666; font-size: 14px;">
+                    If you didn't request a password reset, please ignore this email or contact our support team if you have concerns.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                
+                <p style="font-size: 12px; color: #999; text-align: center;">
+                    © 2024 Asha Store. Grace Woven by Asha Dhaundiyal<br>
+                    Need help? Email us at {settings.from_email}
+                </p>
+            </div>
+        </body>
+        </html>
+        """
         
         return self.send_email(
             to_email=user.email,
-            subject="Reset Your Password - ShopAll",
+            subject="Reset Your Password - Asha Store",
             html_content=html_content
         )
     
