@@ -288,31 +288,61 @@ export default function PaymentSuccessPage() {
     return () => clearTimeout(timer)
   }, [refreshUser])
 
-  // Check for wrong account and auto-redirect
+  // Check for wrong account and auto-redirect - RUN IMMEDIATELY!
   useEffect(() => {
-    if (!isLoading && user && sessionRestored) {
-      const urlEmail = searchParams.get('email')
-      if (urlEmail && user.email.toLowerCase() !== urlEmail.toLowerCase()) {
-        console.log('⚠️ WRONG ACCOUNT DETECTED!')
+    // Check IMMEDIATELY when component mounts, don't wait for anything
+    const urlEmail = searchParams.get('email')
+    if (!urlEmail) return
+    
+    // Check localStorage directly for faster detection
+    const storedUserData = localStorage.getItem('user_data')
+    if (storedUserData) {
+      try {
+        const userData = JSON.parse(storedUserData)
+        if (userData.email && userData.email.toLowerCase() !== urlEmail.toLowerCase()) {
+          console.log('⚠️⚠️⚠️ WRONG ACCOUNT DETECTED IMMEDIATELY! ⚠️⚠️⚠️')
+          console.log('Order email:', urlEmail)
+          console.log('Logged in as:', userData.email)
+          console.log('🔄 FORCE LOGOUT NOW!')
+          
+          // IMMEDIATELY clear session
+          localStorage.clear()
+          sessionStorage.clear()
+          
+          // Set login email
+          sessionStorage.setItem('login_email', urlEmail)
+          sessionStorage.setItem('redirect_after_login', window.location.pathname + window.location.search)
+          sessionStorage.setItem('force_logout', 'true')
+          
+          // IMMEDIATE redirect - no delay!
+          window.location.href = '/auth/login'
+          return
+        }
+      } catch (e) {
+        console.error('Error checking user data:', e)
+      }
+    }
+    
+    // Also check when user loads (backup check)
+    if (!isLoading && user) {
+      if (user.email.toLowerCase() !== urlEmail.toLowerCase()) {
+        console.log('⚠️ WRONG ACCOUNT DETECTED (backup check)!')
         console.log('Order email:', urlEmail)
         console.log('Logged in as:', user.email)
-        console.log('🔄 Auto-logging out and redirecting to correct login...')
         
-        // Clear current session
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('user_data')
+        // IMMEDIATELY clear session
+        localStorage.clear()
+        sessionStorage.clear()
         
-        // Set login email and redirect
+        // Set login email
         sessionStorage.setItem('login_email', urlEmail)
         sessionStorage.setItem('redirect_after_login', window.location.pathname + window.location.search)
         
-        // Auto-redirect after short delay
-        setTimeout(() => {
-          window.location.href = '/auth/login'
-        }, 1000)
+        // IMMEDIATE redirect
+        window.location.href = '/auth/login'
       }
     }
-  }, [user, isLoading, sessionRestored, searchParams])
+  }, [user, isLoading, searchParams])
 
   useEffect(() => {
     const updateOrderStatus = async () => {
@@ -488,8 +518,10 @@ export default function PaymentSuccessPage() {
             
             {sessionRestored && !isLoading && user && (() => {
               const urlEmail = searchParams.get('email')
-              // If wrong account, show redirecting message (useEffect will handle redirect)
+              
+              // CRITICAL: Verify account matches BEFORE showing anything
               if (urlEmail && user.email.toLowerCase() !== urlEmail.toLowerCase()) {
+                // Wrong account - DON'T show user info, just loading/redirecting
                 return (
                   <div className="mb-4 text-center bg-amber-50 border border-amber-300 rounded-lg p-6">
                     <div className="text-3xl mb-3">🔄</div>
@@ -503,7 +535,7 @@ export default function PaymentSuccessPage() {
                 )
               }
               
-              // Correct account - show success
+              // Verified correct account - safe to show user info
               return (
                 <div className="mb-4 text-center bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="text-2xl mb-2">✅</div>
@@ -520,12 +552,6 @@ export default function PaymentSuccessPage() {
                     <p><strong>User ID:</strong> {user.id}</p>
                     <p className="text-green-600"><strong>✓ Token Valid</strong></p>
                   </div>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="mt-3 text-xs text-gray-600 hover:text-gray-800 underline"
-                  >
-                    Wrong account? Click to refresh
-                  </button>
                 </div>
               )
             })()}
