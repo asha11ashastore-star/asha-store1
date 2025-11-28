@@ -10,6 +10,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [resetLink, setResetLink] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -27,6 +28,14 @@ export default function ForgotPasswordPage() {
       })
 
       if (response.ok) {
+        const data = await response.json()
+        console.log('Forgot password response:', data)
+        
+        // Check if we got a reset link (email service disabled)
+        if (data.reset_link) {
+          setResetLink(data.reset_link)
+        }
+        
         setSuccess(true)
       } else {
         const data = await response.json()
@@ -53,21 +62,52 @@ export default function ForgotPasswordPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h1 className="text-3xl font-serif text-primary-brown mb-2">Check Your Email!</h1>
-                <p className="text-gray-600 mb-6">
-                  We've sent password reset instructions to:
-                </p>
-                <p className="text-primary-brown font-semibold mb-6">{email}</p>
-                <p className="text-sm text-gray-500">
-                  Please check your email and follow the instructions to reset your password.
-                  If you don't see the email, check your spam folder.
-                </p>
+                
+                {resetLink ? (
+                  <>
+                    <h1 className="text-3xl font-serif text-primary-brown mb-2">Password Reset Link Ready!</h1>
+                    <p className="text-gray-600 mb-4">
+                      Email service is not configured. Click the button below to reset your password:
+                    </p>
+                    <p className="text-primary-brown font-semibold mb-6">{email}</p>
+                    
+                    <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 mb-6">
+                      <p className="text-sm text-amber-800 font-semibold mb-3">
+                        ⚠️ Email service is temporarily unavailable
+                      </p>
+                      <p className="text-xs text-amber-700 mb-4">
+                        Click the button below to reset your password directly
+                      </p>
+                      <button
+                        onClick={() => window.location.href = resetLink}
+                        className="w-full bg-primary-brown text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-dark-brown transition-colors shadow-lg"
+                      >
+                        🔑 Reset Password Now
+                      </button>
+                      <p className="text-xs text-amber-600 mt-3">
+                        This link expires in 60 minutes
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="text-3xl font-serif text-primary-brown mb-2">Check Your Email!</h1>
+                    <p className="text-gray-600 mb-6">
+                      We've sent password reset instructions to:
+                    </p>
+                    <p className="text-primary-brown font-semibold mb-6">{email}</p>
+                    <p className="text-sm text-gray-500">
+                      Please check your email and follow the instructions to reset your password.
+                      If you don't see the email, check your spam folder.
+                    </p>
+                  </>
+                )}
               </div>
 
               <div className="space-y-4">
                 <button
                   onClick={() => router.push('/auth/login')}
-                  className="w-full bg-primary-brown text-white py-3 rounded-lg hover:bg-dark-brown transition-colors font-semibold"
+                  className="w-full bg-beige-200 text-primary-brown py-3 rounded-lg hover:bg-beige-300 transition-colors font-semibold"
                 >
                   Back to Login
                 </button>
@@ -76,6 +116,7 @@ export default function ForgotPasswordPage() {
                   onClick={() => {
                     setSuccess(false)
                     setEmail('')
+                    setResetLink('')
                   }}
                   className="w-full bg-beige-200 text-primary-brown py-3 rounded-lg hover:bg-beige-300 transition-colors font-semibold"
                 >

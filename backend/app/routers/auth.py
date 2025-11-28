@@ -325,19 +325,18 @@ async def forgot_password(
         # Create reset link
         reset_link = f"https://customer-website-lovat.vercel.app/auth/reset-password?token={reset_token}"
         
-        # Send email (if email service is configured)
-        try:
-            if email_service:
-                await email_service.send_password_reset_email(user.email, reset_link, user.first_name)
-                logger.info(f"Password reset email sent to: {user.email}")
-        except Exception as email_error:
-            logger.warning(f"Could not send email (service may not be configured): {email_error}")
-            # Don't fail - return instructions anyway
-        
+        # TEMPORARY: Email service is disabled, so return the reset link directly
+        # In production, enable SendGrid and remove the reset_link from response
+        logger.warning(f"⚠️ EMAIL SERVICE DISABLED - Returning reset link directly to user")
         logger.info(f"Password reset requested for: {user.email}")
+        logger.info(f"Reset link: {reset_link}")
+        
         return {
-            "message": "If the email exists, a password reset link has been sent",
-            "reset_link": reset_link if not email_service else None  # Only show link if email not sent
+            "message": "Email service is not configured. Use the reset link below.",
+            "reset_link": reset_link,
+            "email": user.email,
+            "expires_in": "60 minutes",
+            "note": "In production, this link would be sent via email"
         }
         
     except Exception as e:
