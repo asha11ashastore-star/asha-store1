@@ -47,6 +47,18 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
+      // CRITICAL: Clear ALL old sessions before creating new account
+      console.log('🧹 Clearing all old sessions and data...')
+      localStorage.clear()
+      sessionStorage.clear()
+      
+      // Clear all cookies
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      })
+      
+      console.log('✅ All old sessions cleared!')
+      
       // Split name into first and last name
       const nameParts = formData.name.trim().split(' ')
       const firstName = nameParts[0] || 'User'
@@ -55,7 +67,7 @@ export default function SignupPage() {
       // Generate username from email (part before @)
       const username = formData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
       
-      console.log('📝 Registering user:', {
+      console.log('📝 Registering NEW user:', {
         username,
         firstName,
         lastName: lastName || '(none)',
@@ -84,6 +96,11 @@ export default function SignupPage() {
       await login(formData.email, formData.password)
       
       console.log('✅ Login successful!')
+      console.log('✅ Logged in as:', formData.email)
+      
+      // Mark that this is a fresh account to prevent redirect loop
+      sessionStorage.setItem('fresh_account', 'true')
+      sessionStorage.setItem('fresh_account_email', formData.email)
       
       // Redirect to home after successful signup
       router.push('/')

@@ -178,6 +178,14 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
         sessionStorage.setItem('auth_token_backup', token)
         sessionStorage.setItem('user_data_backup', userData)
         sessionStorage.setItem('last_order_email', verifiedEmail)
+        
+        // Check if this is a fresh account
+        const isFreshAccount = sessionStorage.getItem('fresh_account') === 'true'
+        if (isFreshAccount) {
+          console.log('💾 This is a FRESH account - will preserve after redirect')
+          sessionStorage.setItem('is_fresh_account_backup', 'true')
+        }
+        
         console.log('💾 Saved user:', JSON.parse(userData).email)
         
         // Method 2: Also save to cookies as extra backup (survives redirects better)
