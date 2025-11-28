@@ -66,9 +66,15 @@ export default function LoginPage() {
             </div>
 
             {autoFilledEmail && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800 font-semibold">✅ Payment Successful!</p>
-                <p className="text-sm text-green-700 mt-1">Login to view your order in your account</p>
+              <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-400 rounded-lg">
+                <p className="text-sm text-amber-900 font-bold mb-2">⚠️ IMPORTANT: Login with the correct email!</p>
+                <p className="text-sm text-amber-800 font-semibold">✅ Payment Successful!</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Your order was placed with <strong>{email}</strong>
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  You MUST login with this email to see your order!
+                </p>
               </div>
             )}
 
@@ -81,7 +87,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Email Address {autoFilledEmail && <span className="text-amber-600">(locked for your order)</span>}
                 </label>
                 <input
                   id="email"
@@ -89,9 +95,33 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-brown focus:border-transparent"
+                  readOnly={autoFilledEmail}
+                  disabled={autoFilledEmail}
+                  className={`w-full px-4 py-3 border rounded-lg ${
+                    autoFilledEmail 
+                      ? 'border-amber-400 bg-amber-50 cursor-not-allowed font-semibold text-amber-900' 
+                      : 'border-gray-300 focus:ring-2 focus:ring-primary-brown focus:border-transparent'
+                  }`}
                   placeholder="you@example.com"
                 />
+                {autoFilledEmail && (
+                  <div className="mt-2">
+                    <p className="text-xs text-amber-600 font-medium">
+                      🔒 This is the email used for your order. Cannot be changed.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sessionStorage.removeItem('login_email')
+                        sessionStorage.removeItem('redirect_after_login')
+                        window.location.href = '/auth/login'
+                      }}
+                      className="mt-2 text-xs text-primary-brown underline hover:text-brown-700"
+                    >
+                      Used wrong email? Click here to login with a different account
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>

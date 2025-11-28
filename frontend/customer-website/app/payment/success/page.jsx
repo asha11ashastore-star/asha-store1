@@ -441,12 +441,42 @@ export default function PaymentSuccessPage() {
             {sessionRestored && !isLoading && user && (
               <div className="mb-4 text-center bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="text-2xl mb-2">✅</div>
-                <p className="text-lg text-green-700 font-bold mb-2">
+                <p className="text-base text-green-700 font-semibold mb-2">
                   Logged in as: {user.email}
                 </p>
-                <p className="text-sm text-gray-700 mb-3">
-                  🎉 Your order is linked to this account
-                </p>
+                {(() => {
+                  const urlEmail = searchParams.get('email')
+                  if (urlEmail && user.email.toLowerCase() !== urlEmail.toLowerCase()) {
+                    return (
+                      <div className="mt-3 p-3 bg-red-50 border-2 border-red-400 rounded-lg">
+                        <p className="text-sm text-red-900 font-bold">⚠️ WRONG ACCOUNT!</p>
+                        <p className="text-xs text-red-800 mt-1">
+                          Order was placed with: <strong>{urlEmail}</strong>
+                        </p>
+                        <p className="text-xs text-red-800 mt-1">
+                          But you're logged in as: <strong>{user.email}</strong>
+                        </p>
+                        <button
+                          onClick={() => {
+                            sessionStorage.setItem('login_email', urlEmail)
+                            sessionStorage.setItem('redirect_after_login', window.location.pathname + window.location.search)
+                            window.location.href = '/auth/login'
+                          }}
+                          className="mt-3 w-full bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700"
+                        >
+                          Logout and login as {urlEmail}
+                        </button>
+                      </div>
+                    )
+                  } else {
+                    return (
+                      <div className="text-sm text-green-600 space-y-1">
+                        <p>✓ Token Valid</p>
+                        <p>🎉 Your order is linked to this account</p>
+                      </div>
+                    )
+                  }
+                })()}
                 <div className="mt-3 pt-3 border-t border-green-200 text-xs text-gray-600 space-y-1">
                   <p><strong>Name:</strong> {user.first_name} {user.last_name || ''}</p>
                   <p><strong>Username:</strong> {user.username}</p>
