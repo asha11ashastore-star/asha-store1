@@ -288,6 +288,32 @@ export default function PaymentSuccessPage() {
     return () => clearTimeout(timer)
   }, [refreshUser])
 
+  // Check for wrong account and auto-redirect
+  useEffect(() => {
+    if (!isLoading && user && sessionRestored) {
+      const urlEmail = searchParams.get('email')
+      if (urlEmail && user.email.toLowerCase() !== urlEmail.toLowerCase()) {
+        console.log('⚠️ WRONG ACCOUNT DETECTED!')
+        console.log('Order email:', urlEmail)
+        console.log('Logged in as:', user.email)
+        console.log('🔄 Auto-logging out and redirecting to correct login...')
+        
+        // Clear current session
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('user_data')
+        
+        // Set login email and redirect
+        sessionStorage.setItem('login_email', urlEmail)
+        sessionStorage.setItem('redirect_after_login', window.location.pathname + window.location.search)
+        
+        // Auto-redirect after short delay
+        setTimeout(() => {
+          window.location.href = '/auth/login'
+        }, 1000)
+      }
+    }
+  }, [user, isLoading, sessionRestored, searchParams])
+
   useEffect(() => {
     const updateOrderStatus = async () => {
       // Get order details from URL params (from Razorpay callback)
@@ -460,59 +486,49 @@ export default function PaymentSuccessPage() {
               </div>
             )}
             
-            {sessionRestored && !isLoading && user && (
-              <div className="mb-4 text-center bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="text-2xl mb-2">✅</div>
-                <p className="text-base text-green-700 font-semibold mb-2">
-                  Logged in as: {user.email}
-                </p>
-                {(() => {
-                  const urlEmail = searchParams.get('email')
-                  if (urlEmail && user.email.toLowerCase() !== urlEmail.toLowerCase()) {
-                    return (
-                      <div className="mt-3 p-3 bg-red-50 border-2 border-red-400 rounded-lg">
-                        <p className="text-sm text-red-900 font-bold">⚠️ WRONG ACCOUNT!</p>
-                        <p className="text-xs text-red-800 mt-1">
-                          Order was placed with: <strong>{urlEmail}</strong>
-                        </p>
-                        <p className="text-xs text-red-800 mt-1">
-                          But you're logged in as: <strong>{user.email}</strong>
-                        </p>
-                        <button
-                          onClick={() => {
-                            sessionStorage.setItem('login_email', urlEmail)
-                            sessionStorage.setItem('redirect_after_login', window.location.pathname + window.location.search)
-                            window.location.href = '/auth/login'
-                          }}
-                          className="mt-3 w-full bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700"
-                        >
-                          Logout and login as {urlEmail}
-                        </button>
-                      </div>
-                    )
-                  } else {
-                    return (
-                      <div className="text-sm text-green-600 space-y-1">
-                        <p>✓ Token Valid</p>
-                        <p>🎉 Your order is linked to this account</p>
-                      </div>
-                    )
-                  }
-                })()}
-                <div className="mt-3 pt-3 border-t border-green-200 text-xs text-gray-600 space-y-1">
-                  <p><strong>Name:</strong> {user.first_name} {user.last_name || ''}</p>
-                  <p><strong>Username:</strong> {user.username}</p>
-                  <p><strong>User ID:</strong> {user.id}</p>
-                  <p className="text-green-600"><strong>✓ Token Valid</strong></p>
+            {sessionRestored && !isLoading && user && (() => {
+              const urlEmail = searchParams.get('email')
+              // If wrong account, show redirecting message (useEffect will handle redirect)
+              if (urlEmail && user.email.toLowerCase() !== urlEmail.toLowerCase()) {
+                return (
+                  <div className="mb-4 text-center bg-amber-50 border border-amber-300 rounded-lg p-6">
+                    <div className="text-3xl mb-3">🔄</div>
+                    <p className="text-lg text-amber-800 font-semibold mb-2">
+                      Redirecting to login...
+                    </p>
+                    <p className="text-sm text-amber-700">
+                      Please wait a moment
+                    </p>
+                  </div>
+                )
+              }
+              
+              // Correct account - show success
+              return (
+                <div className="mb-4 text-center bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="text-2xl mb-2">✅</div>
+                  <p className="text-base text-green-700 font-semibold mb-2">
+                    Logged in as: {user.email}
+                  </p>
+                  <div className="text-sm text-green-600 space-y-1">
+                    <p>✓ Token Valid</p>
+                    <p>🎉 Your order is linked to this account</p>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-green-200 text-xs text-gray-600 space-y-1">
+                    <p><strong>Name:</strong> {user.first_name} {user.last_name || ''}</p>
+                    <p><strong>Username:</strong> {user.username}</p>
+                    <p><strong>User ID:</strong> {user.id}</p>
+                    <p className="text-green-600"><strong>✓ Token Valid</strong></p>
+                  </div>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="mt-3 text-xs text-gray-600 hover:text-gray-800 underline"
+                  >
+                    Wrong account? Click to refresh
+                  </button>
                 </div>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="mt-3 text-xs text-gray-600 hover:text-gray-800 underline"
-                >
-                  Wrong account? Click to refresh
-                </button>
-              </div>
-            )}
+              )
+            })()}
             
             {sessionRestored && !isLoading && !user && (
               <div className="mb-4 text-center bg-amber-50 border border-amber-200 rounded-lg p-4">
