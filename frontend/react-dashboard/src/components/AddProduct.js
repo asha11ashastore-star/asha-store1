@@ -3,8 +3,8 @@ import { productsAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { Save, Package, IndianRupee, Shirt, Upload, X, Image } from 'lucide-react';
 
-// HARDCODED - NO ENV VARS
-const API_BASE_URL = 'https://asha-store-backend.onrender.com';
+// Use custom domain for production API
+const API_BASE_URL = 'https://api.basheera.in';
 
 const AddProduct = () => {
   const [loading, setLoading] = useState(false);

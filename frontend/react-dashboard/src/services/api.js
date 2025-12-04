@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// HARDCODED PRODUCTION URL - NO ENV VARS NEEDED
-const API_BASE_URL = 'https://asha-store-backend.onrender.com';
+// Use custom domain for production API
+const API_BASE_URL = 'https://api.basheera.in';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

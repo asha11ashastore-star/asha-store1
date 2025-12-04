@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Shield, Calendar, Store } from 'lucide-react';
 
-// HARDCODED - NO ENV VARS
-const API_BASE_URL = 'https://asha-store-backend.onrender.com';
+// Use custom domain for production API
+const API_BASE_URL = 'https://api.basheera.in';
 
 const Profile = () => {
   const { user } = useAuth();

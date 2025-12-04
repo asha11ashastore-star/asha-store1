@@ -15,8 +15,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// HARDCODED - NO ENV VARS
-const API_BASE_URL = 'https://asha-store-backend.onrender.com';
+// Use custom domain for production API
+const API_BASE_URL = 'https://api.basheera.in';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
