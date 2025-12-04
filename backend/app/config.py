@@ -104,3 +104,11 @@ if settings.environment == "production":
         "https://www.ashastore.com",
         # Add your custom domains when ready
     ])
+
+# Always allow basheera.in domain (production domain)
+CORS_ORIGINS.extend([
+    "https://basheera.in",
+    "https://www.basheera.in",
+    "http://basheera.in",
+    "http://www.basheera.in",
+])
