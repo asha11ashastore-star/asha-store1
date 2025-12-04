@@ -247,10 +247,29 @@ class EmailService:
         </html>
         """
         
+        # Add plain text version to improve deliverability
+        plain_content = f"""
+Hello {user_name},
+
+We received a request to reset your password for your Asha Store account.
+
+Reset your password by clicking this link:
+{reset_url}
+
+This link will expire in 1 hour.
+
+If you didn't request a password reset, please ignore this email.
+
+---
+© 2024 Asha Store. Grace Woven by Asha Dhaundiyal
+Need help? Email us at {settings.from_email}
+        """
+        
         return self.send_email(
             to_email=user.email,
             subject="Reset Your Password - Asha Store",
-            html_content=html_content
+            html_content=html_content,
+            plain_content=plain_content
         )
     
     def send_bulk_notification(
