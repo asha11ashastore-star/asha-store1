@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
+from datetime import timedelta
 from app.database import get_db
 from app.schemas import (
     UserCreate, UserLogin, UserResponse, TokenResponse, 
@@ -319,7 +320,7 @@ async def forgot_password(
         # Generate reset token (valid for 1 hour)
         reset_token = auth_manager.create_access_token(
             data={"sub": str(user.id), "type": "password_reset"},
-            expires_delta=60  # 60 minutes
+            expires_delta=timedelta(minutes=60)
         )
         
         # Try to send email
