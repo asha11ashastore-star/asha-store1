@@ -406,3 +406,21 @@ async def logout_user(
     """Logout user (client should remove tokens)"""
     logger.info(f"User logged out: {current_user.email}")
     return {"message": "Logged out successfully"}
+
+@router.get("/email-service-status")
+async def check_email_service_status():
+    """Debug endpoint to check email service configuration"""
+    from app.config import settings
+    
+    status_info = {
+        "sendgrid_configured": bool(settings.sendgrid_api_key),
+        "sendgrid_key_set": "Yes" if settings.sendgrid_api_key else "No",
+        "sendgrid_key_preview": settings.sendgrid_api_key[:15] + "..." if settings.sendgrid_api_key else "NOT SET",
+        "from_email": settings.from_email,
+        "from_name": settings.from_name,
+        "email_service_initialized": email_service.sg is not None,
+        "email_service_ready": email_service.sg is not None and email_service.from_email is not None
+    }
+    
+    logger.info(f"Email service status check: {status_info}")
+    return status_info
