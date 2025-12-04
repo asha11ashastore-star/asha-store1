@@ -111,4 +111,8 @@ CORS_ORIGINS.extend([
     "https://www.basheera.in",
     "http://basheera.in",
     "http://www.basheera.in",
+    "https://seller.basheera.in",
+    "https://www.seller.basheera.in",
+    "http://seller.basheera.in",
+    "http://www.seller.basheera.in",
 ])

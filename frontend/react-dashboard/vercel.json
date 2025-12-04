@@ -2,6 +2,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "framework": "create-react-app",
+  "env": {
+    "REACT_APP_API_URL": "https://api.basheera.in",
+    "REACT_APP_API_BASE_URL": "https://api.basheera.in"
+  },
   "headers": [
     {
       "source": "/(.*)",
