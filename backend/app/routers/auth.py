@@ -342,7 +342,7 @@ async def forgot_password(
             }
         
         # If email service is not configured, provide reset link directly (fallback)
-        reset_link = f"https://customer-website-lovat.vercel.app/auth/reset-password?token={reset_token}"
+        reset_link = f"https://basheera.in/auth/reset-password?token={reset_token}"
         logger.warning(f"⚠️ EMAIL NOT SENT - Returning reset link directly as fallback")
         logger.info(f"Reset link: {reset_link}")
         
