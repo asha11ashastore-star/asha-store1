@@ -1,3 +1,4 @@
+# Core dependencies
 fastapi==0.95.0
 uvicorn[standard]==0.21.0
 sqlalchemy==1.4.48
@@ -7,11 +8,17 @@ python-multipart==0.0.6
 pydantic==1.10.13
 email-validator==2.0.0
 python-dotenv==1.0.0
+
+# Payment and integrations
 razorpay==1.4.1
+cloudinary==1.36.0
+
+# Email service (REQUIRED)
+sendgrid==6.11.0
+jinja2==3.1.2
+
+# Additional dependencies
 slowapi==0.1.9
 httpx==0.23.3
 PyJWT==2.6.0
 bcrypt==4.0.1
-cloudinary==1.36.0
-sendgrid==6.11.0
-jinja2==3.1.2
