@@ -102,7 +102,7 @@ async def submit_contact_form(request: ContactFormRequest):
             to_email=settings.from_email,  # Send to store owner
             subject=subject,
             html_content=html_content,
-            plain_text_content=plain_text
+            plain_content=plain_text
         )
         
         if email_sent:
