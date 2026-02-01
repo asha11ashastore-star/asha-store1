@@ -45,6 +45,7 @@ const MyProducts = () => {
 
   useEffect(() => {
     loadProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (productId, productName) => {
