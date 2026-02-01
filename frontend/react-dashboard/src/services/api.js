@@ -47,7 +47,7 @@ export const authAPI = {
 };
 
 export const productsAPI = {
-  getAll: () => api.get('/api/v1/products-dashboard'),  // Use dashboard endpoint for ALL products
+  getAll: () => api.get('/api/v1/products-dashboard?limit=1000'),  // Fetch up to 1000 products
   getById: (id) => api.get(`/api/v1/products/${id}`),
   create: (data) => api.post('/api/v1/products', data),
   update: (id, data) => api.put(`/api/v1/products/${id}`, data),
