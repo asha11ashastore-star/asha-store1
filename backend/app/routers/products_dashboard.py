@@ -14,7 +14,7 @@ router = APIRouter(tags=["Products"])
 @router.get("/products-dashboard", response_model=PaginatedResponse)
 async def get_dashboard_products_raw(
     page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=10000),
     current_seller: User = Depends(get_current_seller),
     db: Session = Depends(get_db)
 ):
