@@ -147,13 +147,17 @@ class ApiService {
 
   // Products endpoints
   async getProducts(params = {}) {
-    const queryString = new URLSearchParams(params).toString()
+    // Add limit and cache-busting
+    const allParams = { limit: 1000, _t: Date.now(), ...params }
+    const queryString = new URLSearchParams(allParams).toString()
     return await this.request(`/api/v1/products-fixed?${queryString}`)
   }
 
   async getAllProducts(params = {}) {
-    const queryString = new URLSearchParams(params).toString()
-    const response = await this.request(`/api/v1/products/${queryString ? '?' + queryString : ''}`)
+    // Add limit and cache-busting
+    const allParams = { limit: 1000, _t: Date.now(), ...params }
+    const queryString = new URLSearchParams(allParams).toString()
+    const response = await this.request(`/api/v1/products-fixed?${queryString}`)
     
     // Normalize response format - API returns {items: [], ...} but we need {data: []}
     if (response.items) {

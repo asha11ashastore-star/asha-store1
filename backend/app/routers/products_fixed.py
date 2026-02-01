@@ -14,7 +14,7 @@ router = APIRouter(prefix="/products-fixed", tags=["Products Fixed"])
 @router.get("/", response_model=PaginatedResponse)
 async def get_products_fixed(
     page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(1000, ge=1, le=10000),
     category: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user)
