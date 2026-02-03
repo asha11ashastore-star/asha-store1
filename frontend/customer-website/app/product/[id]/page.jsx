@@ -299,8 +299,7 @@ export default function ProductDetailPage() {
 
           {/* Product Details */}
           <div>
-            <h1 className="text-3xl font-serif text-primary-brown mb-2">{product.name}</h1>
-            <p className="text-lg text-gray-600 mb-4">{product.description}</p>
+            <h1 className="text-3xl font-serif text-primary-brown mb-6">{product.name}</h1>
             
             <div className="mb-6">
               {/* Check if product has discount */}
