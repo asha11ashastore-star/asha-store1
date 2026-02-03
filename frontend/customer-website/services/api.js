@@ -147,15 +147,15 @@ class ApiService {
 
   // Products endpoints
   async getProducts(params = {}) {
-    // Add limit and cache-busting
-    const allParams = { limit: 1000, _t: Date.now(), ...params }
+    // Add limit and cache-busting - use 100 for faster loading
+    const allParams = { limit: 100, _t: Date.now(), ...params }
     const queryString = new URLSearchParams(allParams).toString()
     return await this.request(`/api/v1/products-fixed?${queryString}`)
   }
 
   async getAllProducts(params = {}) {
-    // Add limit and cache-busting
-    const allParams = { limit: 1000, _t: Date.now(), ...params }
+    // Add limit and cache-busting - use 100 for faster loading
+    const allParams = { limit: 100, _t: Date.now(), ...params }
     const queryString = new URLSearchParams(allParams).toString()
     const response = await this.request(`/api/v1/products-fixed?${queryString}`)
     

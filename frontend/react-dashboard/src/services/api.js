@@ -47,7 +47,7 @@ export const authAPI = {
 };
 
 export const productsAPI = {
-  getAll: () => api.get(`/api/v1/products-dashboard?limit=1000&_t=${Date.now()}`),  // Fetch up to 1000 products with cache-busting
+  getAll: () => api.get(`/api/v1/products-dashboard?limit=500&_t=${Date.now()}`),  // Fetch up to 500 products with cache-busting for better performance
   getById: (id) => api.get(`/api/v1/products/${id}`),
   create: (data) => api.post('/api/v1/products', data),
   update: (id, data) => api.put(`/api/v1/products/${id}`, data),

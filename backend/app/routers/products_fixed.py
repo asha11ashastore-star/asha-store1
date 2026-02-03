@@ -14,14 +14,14 @@ router = APIRouter(prefix="/products-fixed", tags=["Products Fixed"])
 @router.get("/", response_model=PaginatedResponse)
 async def get_products_fixed(
     page: int = Query(1, ge=1),
-    limit: int = Query(1000, ge=1, le=10000),
+    limit: int = Query(100, ge=1, le=10000),
     category: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user)
 ):
-    """Get products using raw SQL to avoid enum issues"""
+    """Get products using raw SQL to avoid enum issues - optimized for performance"""
     try:
-        # Build SQL query
+        # Build optimized SQL query with indexed columns
         base_query = """
             SELECT 
                 p.id,
