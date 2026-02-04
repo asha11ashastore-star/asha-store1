@@ -26,7 +26,7 @@ function CollectionsContent() {
         // Add cache-busting and no-cache headers
         const timestamp = new Date().getTime()
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}/api/v1/products-fixed?limit=100&_t=${timestamp}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}/api/v1/products-fixed/?limit=100&_t=${timestamp}`,
           {
             cache: 'no-store',
             headers: {
