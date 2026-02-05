@@ -21,7 +21,7 @@ export default function SearchModal({ isOpen, onClose }) {
       try {
         const timestamp = new Date().getTime()
         const response = await fetch(
-          `${API_BASE_URL}/api/v1/products-fixed/?limit=20&_t=${timestamp}`,
+          `${API_BASE_URL}/api/v1/products-fixed/?limit=500&_t=${timestamp}`,
           {
             cache: 'no-store',
             headers: {
@@ -34,14 +34,48 @@ export default function SearchModal({ isOpen, onClose }) {
           const data = await response.json()
           const products = data.items || []
           
-          // Filter products by search query (name, description, category)
+          // Filter products by search query (name, description, category, tags)
           const filtered = products.filter(product => {
-            const query = searchQuery.toLowerCase()
+            const query = searchQuery.toLowerCase().trim()
+            const name = product.name?.toLowerCase() || ''
+            const description = product.description?.toLowerCase() || ''
+            const category = product.category?.toLowerCase() || ''
+            
+            // Parse tags if they exist
+            let tags = ''
+            try {
+              if (product.tags) {
+                const parsedTags = typeof product.tags === 'string' ? JSON.parse(product.tags) : product.tags
+                tags = Object.values(parsedTags).join(' ').toLowerCase()
+              }
+            } catch (e) {
+              // Ignore tag parsing errors
+            }
+            
             return (
-              product.name?.toLowerCase().includes(query) ||
-              product.description?.toLowerCase().includes(query) ||
-              product.category?.toLowerCase().includes(query)
+              name.includes(query) ||
+              description.includes(query) ||
+              category.includes(query) ||
+              tags.includes(query)
             )
+          })
+          
+          // Sort by relevance - exact name matches first
+          filtered.sort((a, b) => {
+            const aName = a.name?.toLowerCase() || ''
+            const bName = b.name?.toLowerCase() || ''
+            const query = searchQuery.toLowerCase().trim()
+            
+            const aExact = aName === query
+            const bExact = bName === query
+            const aStarts = aName.startsWith(query)
+            const bStarts = bName.startsWith(query)
+            
+            if (aExact && !bExact) return -1
+            if (!aExact && bExact) return 1
+            if (aStarts && !bStarts) return -1
+            if (!aStarts && bStarts) return 1
+            return 0
           })
           
           setSearchResults(filtered)
