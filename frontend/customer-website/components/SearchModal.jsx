@@ -1,22 +1,61 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'
 
 export default function SearchModal({ isOpen, onClose }) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (searchQuery) {
-      // Simulate search results
-      const mockResults = [
-        { id: 1, name: 'Silk Saree', price: '₹5,999', image: '/api/placeholder/200/250' },
-        { id: 2, name: 'Cotton Kurta', price: '₹1,299', image: '/api/placeholder/200/250' },
-        { id: 3, name: 'Embroidered Lehenga', price: '₹8,999', image: '/api/placeholder/200/250' },
-      ].filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      setSearchResults(searchResults)
-    } else {
-      setSearchResults([])
+    const searchProducts = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([])
+        return
+      }
+
+      setLoading(true)
+      try {
+        const timestamp = new Date().getTime()
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/products-fixed/?limit=20&_t=${timestamp}`,
+          {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+            }
+          }
+        )
+
+        if (response.ok) {
+          const data = await response.json()
+          const products = data.items || []
+          
+          // Filter products by search query (name, description, category)
+          const filtered = products.filter(product => {
+            const query = searchQuery.toLowerCase()
+            return (
+              product.name?.toLowerCase().includes(query) ||
+              product.description?.toLowerCase().includes(query) ||
+              product.category?.toLowerCase().includes(query)
+            )
+          })
+          
+          setSearchResults(filtered)
+        }
+      } catch (error) {
+        console.error('Search error:', error)
+        setSearchResults([])
+      } finally {
+        setLoading(false)
+      }
     }
+
+    const debounceTimer = setTimeout(searchProducts, 300)
+    return () => clearTimeout(debounceTimer)
   }, [searchQuery])
 
   if (!isOpen) return null
@@ -49,20 +88,67 @@ export default function SearchModal({ isOpen, onClose }) {
               autoFocus
             />
             
-            {searchResults.length > 0 && (
-              <div className="mt-6 grid grid-cols-3 gap-4">
+            {loading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-brown mx-auto"></div>
+                <p className="text-gray-500 mt-2 text-sm">Searching...</p>
+              </div>
+            )}
+            
+            {!loading && searchResults.length > 0 && (
+              <div className="mt-6 grid grid-cols-3 gap-4 max-h-96 overflow-y-auto">
                 {searchResults.map((product) => (
-                  <div key={product.id} className="cursor-pointer hover:opacity-80">
-                    <div className="bg-gray-100 h-40 rounded-lg mb-2"></div>
-                    <h3 className="text-sm font-medium">{product.name}</h3>
-                    <p className="text-sm text-gray-600">{product.price}</p>
+                  <div 
+                    key={product.id} 
+                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => {
+                      router.push(`/product/${product.id}`)
+                      onClose()
+                    }}
+                  >
+                    <div className="bg-gray-100 h-40 rounded-lg mb-2 overflow-hidden">
+                      {product.primary_image ? (
+                        <img 
+                          src={
+                            product.primary_image.startsWith('http')
+                              ? product.primary_image
+                              : `${API_BASE_URL}${product.primary_image}`
+                          }
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-sm font-medium line-clamp-1">{product.name}</h3>
+                    <p className="text-sm text-primary-brown font-semibold">
+                      ₹{parseFloat(product.discounted_price || product.price).toLocaleString()}
+                    </p>
                   </div>
                 ))}
               </div>
             )}
             
-            {searchQuery && searchResults.length === 0 && (
-              <p className="text-center text-gray-500 mt-8">No products found</p>
+            {!loading && searchQuery.trim().length >= 2 && searchResults.length === 0 && (
+              <div className="text-center py-8">
+                <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <p className="text-gray-500">No products found for "{searchQuery}"</p>
+                <p className="text-gray-400 text-sm mt-2">Try searching with different keywords</p>
+              </div>
+            )}
+            
+            {searchQuery.trim().length < 2 && searchQuery.length > 0 && (
+              <p className="text-center text-gray-400 mt-8 text-sm">Type at least 2 characters to search</p>
             )}
           </div>
         </div>
