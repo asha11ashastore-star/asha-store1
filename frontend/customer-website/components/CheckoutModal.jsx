@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useCart } from './CartProvider'
 import { useAuth } from '../contexts/AuthContext'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.basheera.in'
 
 export default function CheckoutModal({ isOpen, onClose, onSuccess }) {
   const router = useRouter()

@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
     setLoading(true)
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.basheera.in'
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password`, {
         method: 'POST',
         headers: {

@@ -26,7 +26,7 @@ function CollectionsContent() {
         // Add cache-busting and no-cache headers
         const timestamp = new Date().getTime()
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}/api/v1/products-fixed/?limit=100&_t=${timestamp}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.basheera.in'}/api/v1/products-fixed/?limit=100&_t=${timestamp}`,
           {
             cache: 'no-store',
             headers: {
@@ -138,7 +138,7 @@ function CollectionsContent() {
                     src={
                       product.primary_image?.startsWith('http') 
                         ? product.primary_image 
-                        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'}${product.primary_image || '/uploads/placeholder.jpg'}`
+                        : `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.basheera.in'}${product.primary_image || '/uploads/placeholder.jpg'}`
                     }
                     alt={product.name}
                     className="w-full h-full object-cover"

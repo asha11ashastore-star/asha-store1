@@ -5,7 +5,7 @@ import Header from '../../../components/Header'
 import Footer from '../../../components/Footer'
 import { useCart } from '../../../components/CartProvider'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://asha-store-backend.onrender.com'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.basheera.in'
 
 export default function ProductDetailPage() {
   const { id } = useParams()
